@@ -1,4 +1,7 @@
 #include "table.hpp"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace SQL
 {
@@ -54,9 +57,21 @@ namespace SQL
 		return matches;
 	};
 
-	Game::Match ** Table::getNewMatches( void )
+	Game::Match ** Table::getMatchesByStatus( int count, ...  )
 	{
-		if( mysql_query( m_con, "select * from matches where status=0" ) != 0 ) {
+		char * query = (char*)calloc( 256, sizeof( char ) );
+		sprintf( query, "select * from matches where status in (" );
+
+		// God I love va_arg
+		va_list status;
+		va_start( status, count );
+		for( int ii = 0; ii < count; ii++ )
+			sprintf( query + strlen( query ), "%d,", va_arg( status, int ) );
+		va_end( status );
+		//
+		sprintf( query + strlen( query ) - 1, ");" );
+
+		if( mysql_query( m_con, query ) != 0 ) {
 			return NULL;
 		}
 		MYSQL_RES * res = mysql_store_result( m_con );

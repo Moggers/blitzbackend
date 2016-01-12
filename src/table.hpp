@@ -2,6 +2,7 @@
 #include <mysql.h>
 #include <my_global.h>
 #include "match.hpp"
+#include <stdarg.h>
 namespace SQL
 {
 	class Table
@@ -10,7 +11,7 @@ namespace SQL
 		Table( void );
 		~Table( void );
 		Game::Match ** getAllMatches( void );
-		Game::Match ** getNewMatches( void );
+		Game::Match ** getMatchesByStatus( int count, ... );
 		void saveMatch( Game::Match * match );
 
 		private:

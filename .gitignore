@@ -1,3 +1,5 @@
 dom4/
 bin/
 server.cfg
+*.o
+src/*.swp
