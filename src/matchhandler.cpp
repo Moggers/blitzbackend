@@ -37,21 +37,25 @@ namespace Server
 		return port;
 	}
 
+	std::list<Server::MatchInstance*>::iterator MatchHandler::getMatchInstance( Game::Match * c )
+	{
+		return find_if( m_matches.begin(), m_matches.end(), [c](Server::MatchInstance * in)->int
+			{ if( in->match->id == c->id ) return 1; return 0; } );
+	}
+
 	void MatchHandler::startNewServers( void )
 	{
 		Game::Match ** matches = m_table->getMatchesByStatus( 2, 0, 1 );
 		if( matches == NULL ) return;
 		int ii = 0;
 		Game::Match * cmatch = NULL;
-		while( ( cmatch = matches[ii++] ) != NULL )
-		{
+		while( ( cmatch = matches[ii++] ) != NULL ) {
 			fprintf( stdout, "Found a match named %s (status %d). ", cmatch->name, cmatch->status );
 			int port = 0;
 			if( cmatch->status == 0 ) {
 				fprintf( stdout, "It is new\n");
 				port = getPort();
-			} else if( find_if( m_matches.begin(), m_matches.end(),[cmatch](Server::MatchInstance * in)->int
-				{ if( in->match->id == cmatch->id ) return 1; return 0; } ) == m_matches.end() ) {
+			} else if( getMatchInstance( cmatch ) == m_matches.end() ) {
 				fprintf( stdout, "It is meant to be running on port %d, but I don't know about it\n", cmatch->port );
 				port = getSpecificPort( cmatch->port );
 				if( port == -1 ) {
@@ -77,6 +81,16 @@ namespace Server
 			cmatch->status = 1;
 			cmatch->port = port;
 			m_table->saveMatch( cmatch );
+		}
+	}
+
+	void MatchHandler::beginGames( void )
+	{
+		Game::Match ** matches = m_table->getMatchesByStatus( 3, 4 );
+		if( matches == NULL ) return;
+		int ii = 0;
+		Game::Match * cmatch = NULL;
+		while( ( cmatch = matches[ii++] ) != NULL ) {
 		}
 	}
 }

@@ -8,15 +8,27 @@ namespace Server
 	class MatchHandler
 	{
 		public:
-		static int getPort( void );
-		static void addPort( int port );
-		static int getSpecificPort( int port );
+		// Default constructor
 		MatchHandler( void );
+		// Retrieve all servers in the database in the lobby phase and spin them up
 		void startNewServers( void );
+		// Retrieve all servers inthe database in the play phase and spin them up
+		void beginGames( void );
+		// Find an instance associated with a match
+		std::list<Server::MatchInstance*>::iterator getMatchInstance( Game::Match * c );
 
 		private:
+		// Retrieve a unique port from the stack
+		static int getPort( void );
+		// Notify the port stack that <port> is no longer being used
+		static void addPort( int port );
+		// Request a specific port from the stack, returns -1 if it's taken
+		static int getSpecificPort( int port );
+		// Database access for this handler
 		SQL::Table * m_table;
+		// List of servers
 		std::vector<Server::MatchInstance*> m_matches;
+		// Available ports
 		static std::list<int> ports;
 	};
 }
