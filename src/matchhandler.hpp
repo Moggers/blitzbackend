@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include "table.hpp"
 #include "matchinstance.hpp"
@@ -15,7 +16,7 @@ namespace Server
 		// Retrieve all servers inthe database in the play phase and spin them up
 		void beginGames( void );
 		// Find an instance associated with a match
-		std::list<Server::MatchInstance*>::iterator getMatchInstance( Game::Match * c );
+		std::vector<Server::MatchInstance*>::iterator getMatchInstance( Game::Match * c );
 
 		private:
 		// Retrieve a unique port from the stack

@@ -1,5 +1,6 @@
 #pragma once
 #include "match.hpp"
+#include "util.hpp"
 #include <stdio.h>
 namespace Server
 {
@@ -7,9 +8,9 @@ namespace Server
 	{
 		public:
 		Game::Match * match;
-		FILE * pipe;
+		popen2_t * process;
 		int port;
-		MatchInstance( FILE * pipe, Game::Match * match, int port );
+		MatchInstance( popen2_t * process, Game::Match * match, int port );
 		MatchInstance( void );
 	};
 }

@@ -1,4 +1,5 @@
 #include "matchhandler.hpp"
+#include "util.hpp"
 #include <iterator>
 #include "settings.hpp"
 #include <stdio.h>
@@ -6,6 +7,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <algorithm>
+#include "matchhandler.hpp"
 
 namespace Server
 {
@@ -37,7 +39,7 @@ namespace Server
 		return port;
 	}
 
-	std::list<Server::MatchInstance*>::iterator MatchHandler::getMatchInstance( Game::Match * c )
+	std::vector<Server::MatchInstance*>::iterator MatchHandler::getMatchInstance( Game::Match * c )
 	{
 		return find_if( m_matches.begin(), m_matches.end(), [c](Server::MatchInstance * in)->int
 			{ if( in->match->id == c->id ) return 1; return 0; } );
@@ -67,15 +69,14 @@ namespace Server
 				continue;
 			}
 			char * com = (char*)calloc( 128, sizeof( char ) );
-			sprintf( com, "%s --era %d --mapfile \"%s%s\" -T --tcpserver --port %d \"%s\"", 
+			sprintf( com, "%s --era %d -T --tcpserver --port %d \"%s\"", 
 				Server::Settings::exepath, 
 				cmatch->age, 
-				Settings::mappath, 
-				cmatch->mapName, 
 				port,
 				cmatch->name );
-			FILE * pipe = popen( com, "r" );
-			Server::MatchInstance * inst = new Server::MatchInstance( pipe, cmatch, port );
+			popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
+			popen2( com, proc );
+			Server::MatchInstance * inst = new Server::MatchInstance( proc, cmatch, port );
 			m_matches.push_back( inst );
 			fprintf( stdout, "Started server on port %d.\n", port );
 			cmatch->status = 1;

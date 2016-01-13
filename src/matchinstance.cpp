@@ -1,14 +1,15 @@
 #include "matchinstance.hpp"
+#include <stdlib.h>
 
 namespace Server
 {
 	MatchInstance::MatchInstance( void )
 	{
-		pipe = NULL;
+		process = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 		port = 0;
 		match = NULL;
 	}
-	MatchInstance::MatchInstance( FILE * pipe, Game::Match * match, int port ) :match{match}, pipe{pipe}, port{port}
+	MatchInstance::MatchInstance( popen2_t * process, Game::Match * match, int port ) :match{match}, port{port}, process{process}
 	{
 	}
 }
