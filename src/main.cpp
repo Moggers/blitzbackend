@@ -7,6 +7,7 @@ int main( int argc, char ** argv )
 	while( true ) {
 		fprintf( stdout, "Polling\n" );
 		matchHandler->startNewServers();
+		matchHandler->beginGames();
 		sleep( 1 );
 		fprintf( stdout, "Done\n" );
 	}

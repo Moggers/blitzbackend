@@ -1,7 +1,9 @@
 #include "table.hpp"
+#include "settings.hpp"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 
 namespace SQL
 {
@@ -12,15 +14,20 @@ namespace SQL
 			fprintf( stdout, "%s\n", mysql_error( m_con ) );
 		}
 
-		if( mysql_real_connect( m_con, "localhost", "blitzuser", "foresterbob", NULL, 0, NULL, 0) == NULL ) {
+		if( mysql_real_connect( m_con, "localhost", Server::Settings::dbuser, Server::Settings::dbpass, NULL, 0, NULL, 0) == NULL ) {
 			fprintf( stdout, "%s\n", mysql_error( m_con ) );
 			mysql_close( m_con );
 		}
 
-		if( mysql_query( m_con, "USE blitzserver" ) != 0 ) {
+		char * query = (char*)calloc( 128, sizeof( char ) );
+		sprintf( query, "use " );
+		sprintf( query + strlen( query ), "%s",  Server::Settings::dbname );
+		if( mysql_query( m_con, query) != 0 ) {
 			fprintf( stdout, "%s\n", mysql_error( m_con ) );
 			mysql_close( m_con );
 		}
+
+		fprintf( stdout, "Connected to database %s\n", Server::Settings::dbname );
 	}
 	Table::~Table( void )
 	{
@@ -42,7 +49,7 @@ namespace SQL
 		int ii = 0;
 		while( MYSQL_ROW row = mysql_fetch_row( res ) ) {
 			char * query = (char*)calloc( 128, sizeof( char ) );
-			sprintf( query, "select mappath from maps where id=%s", row[1] );
+			sprintf( query, "select mappath,imagepath from maps where id=%s", row[1] );
 			if( mysql_query( m_con, query ) )
 				return NULL;
 			MYSQL_RES * mappath = mysql_store_result( m_con );
@@ -50,7 +57,7 @@ namespace SQL
 				return NULL;
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
-			matches[ii] = new Game::Match( atoi( row[0] ), mappathrow[0], atoi( row[2] ), row[3], atoi( row[4] ), atoi( row[5] ) );
+			matches[ii] = new Game::Match( atoi( row[0] ), atoi( row[1] ), mappathrow[0], mappathrow[1], atoi( row[2] ), row[3], atoi( row[4] ), atoi( row[5] ) );
 			ii++;
 		}
 
@@ -84,7 +91,7 @@ namespace SQL
 		int ii = 0;
 		while( MYSQL_ROW row = mysql_fetch_row( res ) ) {
 			char * query = (char*)calloc( 128, sizeof( char ) );
-			sprintf( query, "select mappath from maps where id=%s", row[1] );
+			sprintf( query, "select mappath,imagepath from maps where id=%s", row[1] );
 			if( mysql_query( m_con, query ) )
 				return NULL;
 			MYSQL_RES * mappath = mysql_store_result( m_con );
@@ -92,7 +99,7 @@ namespace SQL
 				return NULL;
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
-			matches[ii] = new Game::Match( atoi( row[0] ), mappathrow[0], atoi( row[2] ), row[3], atoi( row[4] ), atoi( row[5] ) );
+			matches[ii] = new Game::Match( atoi( row[0] ), atoi( row[1] ), mappathrow[0], mappathrow[1], atoi( row[2] ), row[3], atoi( row[4] ), atoi( row[5] ) );
 			ii++;
 		}
 

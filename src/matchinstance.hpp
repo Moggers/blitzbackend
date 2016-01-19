@@ -9,8 +9,7 @@ namespace Server
 		public:
 		Game::Match * match;
 		popen2_t * process;
-		int port;
-		MatchInstance( popen2_t * process, Game::Match * match, int port );
+		MatchInstance( popen2_t * process, Game::Match * match );
 		MatchInstance( void );
 	};
 }

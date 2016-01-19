@@ -15,10 +15,10 @@ namespace Server
 		void startNewServers( void );
 		// Retrieve all servers inthe database in the play phase and spin them up
 		void beginGames( void );
-		// Find an instance associated with a match
-		std::vector<Server::MatchInstance*>::iterator getMatchInstance( Game::Match * c );
 
 		private:
+		// Find an instance associated with a match
+		std::vector<Server::MatchInstance*>::iterator getMatchInstance( Game::Match * c );
 		// Retrieve a unique port from the stack
 		static int getPort( void );
 		// Notify the port stack that <port> is no longer being used
