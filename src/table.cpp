@@ -57,7 +57,7 @@ namespace SQL
 				return NULL;
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
-			matches[ii] = new Game::Match( atoi( row[0] ), atoi( row[1] ), mappathrow[0], mappathrow[1], atoi( row[2] ), row[3], atoi( row[4] ), atoi( row[5] ) );
+			matches[ii] = new Game::Match( row, mappathrow );
 			ii++;
 		}
 
@@ -99,7 +99,7 @@ namespace SQL
 				return NULL;
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
-			matches[ii] = new Game::Match( atoi( row[0] ), atoi( row[1] ), mappathrow[0], mappathrow[1], atoi( row[2] ), row[3], atoi( row[4] ), atoi( row[5] ) );
+			matches[ii] = new Game::Match( row, mappathrow );
 			ii++;
 		}
 
@@ -110,6 +110,16 @@ namespace SQL
 	{
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		sprintf( query, "update matches set status=%d,port=%d where id=%d;", match->status, match->port, match->id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Warning! Failed to save data back to sql server: %d\n", sqlerrno );
+		}
+	}
+
+	void Table::deleteMatch( Game::Match * match )
+	{
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "delete from matches where id=%d", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Warning! Failed to save data back to sql server: %d\n", sqlerrno );

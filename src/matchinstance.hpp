@@ -11,5 +11,6 @@ namespace Server
 		popen2_t * process;
 		MatchInstance( popen2_t * process, Game::Match * match );
 		MatchInstance( void );
+		int shutdown( void );
 	};
 }

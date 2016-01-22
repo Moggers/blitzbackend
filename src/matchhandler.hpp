@@ -4,6 +4,7 @@
 #include "matchinstance.hpp"
 #include "match.hpp"
 #include <list>
+#include <signal.h>
 namespace Server
 {
 	class MatchHandler
@@ -15,6 +16,12 @@ namespace Server
 		void startNewServers( void );
 		// Retrieve all servers inthe database in the play phase and spin them up
 		void beginGames( void );
+		// Shutdown servers that need to be shutdown
+		void shutdownServers( void );
+		// Bogus static variable for static signal function
+		static MatchHandler * WhyDoIHaveToDoThis;
+		// Static signal function for SIGINT
+		static void shutdown_callback( int signum );
 
 		private:
 		// Find an instance associated with a match

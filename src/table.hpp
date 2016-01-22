@@ -13,6 +13,7 @@ namespace SQL
 		Game::Match ** getAllMatches( void );
 		Game::Match ** getMatchesByStatus( int count, ... );
 		void saveMatch( Game::Match * match );
+		void deleteMatch(Game::Match * match );
 
 		private:
 		MYSQL * m_con;

@@ -1,4 +1,6 @@
 #include "matchinstance.hpp"
+#include <sys/wait.h>
+#include <signal.h>
 #include <stdlib.h>
 
 namespace Server
@@ -11,4 +13,12 @@ namespace Server
 	MatchInstance::MatchInstance( popen2_t * process, Game::Match * match ) :match{match}, process{process}
 	{
 	}
+
+	int MatchInstance::shutdown( void )
+	{
+		int retcode = kill( process->child_pid, SIGTERM );
+		waitpid( process->child_pid, NULL, 0 );
+		return retcode;
+	}
+
 }
