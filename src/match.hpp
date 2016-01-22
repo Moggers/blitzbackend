@@ -20,6 +20,7 @@ namespace Game
 		int * t;
 		int research;
 		int renaming;
+		int clientstart;
 		private:
 	};
 }

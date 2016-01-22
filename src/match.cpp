@@ -27,7 +27,8 @@ namespace Game
 		age{atoi(match[2])},
 		port{atoi(match[5])},
 		research{atoi(match[10])},
-		renaming{atoi(match[11])}
+		renaming{atoi(match[11])},
+		clientstart{atoi(match[12])}
 	{
 		this->mapName = (char*)malloc( strlen( map[0] ) );
 		strcpy( this->mapName, map[0] );
@@ -44,8 +45,10 @@ namespace Game
 
 	char* Match::createConfStr( void )
 	{
-	char * str = (char*)calloc( 1024, sizeof( char ) );
-		sprintf( str, "--renaming %d --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s\"", 
+		char * str = (char*)calloc( 1024, sizeof( char ) );
+		if( this->clientstart == 0 )
+			sprintf( str, "--noclientstart " );
+		sprintf( str + strlen( str ), "--renaming %d --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s\"", 
 			this->renaming,
 			this->research,
 			this->age, 

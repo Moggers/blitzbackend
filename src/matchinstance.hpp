@@ -1,6 +1,7 @@
 #pragma once
 #include "match.hpp"
 #include "util.hpp"
+#include "matchwatcher.hpp"
 #include <stdio.h>
 namespace Server
 {
@@ -12,5 +13,6 @@ namespace Server
 		MatchInstance( popen2_t * process, Game::Match * match );
 		MatchInstance( void );
 		int shutdown( void );
+		Server::MatchWatcher * watcher;
 	};
 }

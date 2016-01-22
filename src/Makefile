@@ -1,6 +1,6 @@
 LIBS=$(shell mysql_config --libs) -lconfig
-all: clean main.o table.o match.o matchhandler.o matchinstance.o settings.o util.o
-	clang++ main.o table.o match.o matchhandler.o matchinstance.o settings.o util.o $(LIBS) -o ../bin/a.out -g --std=c++11 
+all: clean main.o table.o match.o matchhandler.o matchinstance.o settings.o util.o matchwatcher.o
+	clang++ main.o table.o match.o matchhandler.o matchinstance.o settings.o util.o matchwatcher.o $(LIBS) -o ../bin/a.out -g --std=c++11 
 
 clean:
 	rm -rf *.o ../bin/a.out
@@ -25,3 +25,6 @@ settings.o: settings.cpp
 
 util.o: util.cpp
 	clang++ -c -I/usr/include/mysql util.cpp -g --std=c++11
+
+matchwatcher.o: matchwatcher.cpp
+	clang++ -c -I/usr/include/mysql matchwatcher.cpp -g --std=c++11
