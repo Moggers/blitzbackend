@@ -26,17 +26,13 @@ namespace Server
 		private:
 		// Find an instance associated with a match
 		std::vector<Server::MatchInstance*>::iterator getMatchInstance( Game::Match * c );
-		// Retrieve a unique port from the stack
+		// Retrieve a unique port 
 		static int getPort( void );
-		// Notify the port stack that <port> is no longer being used
-		static void addPort( int port );
-		// Request a specific port from the stack, returns -1 if it's taken
+		// Request a specific port 
 		static int getSpecificPort( int port );
 		// Database access for this handler
 		SQL::Table * m_table;
 		// List of servers
 		std::vector<Server::MatchInstance*> m_matches;
-		// Available ports
-		static std::list<int> ports;
 	};
 }

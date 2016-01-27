@@ -15,34 +15,30 @@
 
 namespace Server
 {
-	std::list<int> MatchHandler::ports;
 	MatchHandler * MatchHandler::WhyDoIHaveToDoThis;
 
 	MatchHandler::MatchHandler( void )
 	{
 		this->m_table = new SQL::Table();
-		for( int ii = 2048; ii < 4096; ii++ ) {
-			ports.push_back( ii );
-		}
 		WhyDoIHaveToDoThis = this;
 	}
 
 	int MatchHandler::getPort( void )
 	{
-		int port = ports.back();
-		ports.pop_back();
-		return port;
-	}
-	void MatchHandler::addPort( int port )
-	{
-		ports.push_back( port );
+		int ii = 4096;
+		for( ii = 4096; ii > 2048; ii-- ) {
+			if( port_check( ii ) == 1 ) {
+				return ii;
+			}
+		}
+		
+		return -1;
 	}
 	int MatchHandler::getSpecificPort( int port )
 	{
-		auto res = std::find( ports.begin(), ports.end(), port );
-		if( res == ports.end() ) return -1;
-		ports.erase( res );
-		return port;
+		if( port_check( port ) == 1 ) 
+			return port;
+		else return -1;
 	}
 
 	std::vector<Server::MatchInstance*>::iterator MatchHandler::getMatchInstance( Game::Match * c )
@@ -81,21 +77,26 @@ namespace Server
 				}
 			} else {
 				Server::MatchInstance * inst = *getMatchInstance(cmatch);
-				if( inst->watcher->mesg != -1 ) {
+				if( inst->watcher->mesg > 0 ) {
 					cmatch->status = inst->watcher->mesg / 5 + 10;
 					if( cmatch->status == 10 ) cmatch->status = 3;
+					m_table->saveMatch( cmatch );
+					inst->watcher->mesg = 0;
+				} else if( inst->watcher->mesg == -1 ) {
+					fprintf( stdout, "Match %s has either died or failed to start\n", cmatch->name );
+					cmatch->status = 99;
 					m_table->saveMatch( cmatch );
 				}
 				continue;
 			}
 			// Copy the map files into dom4's search dir
 			char * comstr = (char*)calloc( 256, sizeof( char ) );
-			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_save, cmatch->mapid, cmatch->mapName, Server::Settings::mappath_load );
+			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->mapName, Server::Settings::mappath_save );
 			system( comstr );
-			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_save, cmatch->mapid, cmatch->imgName, Server::Settings::mappath_load );
+			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->imgName, Server::Settings::mappath_save );
 			system( comstr );
 			// Spawn
-			char * com = (char*)calloc( 128, sizeof( char ) );
+			char * com = (char*)calloc( 512, sizeof( char ) );
 			sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, port, cmatch->createConfStr() );
 			popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 			popen2( com, proc );
@@ -179,7 +180,6 @@ namespace Server
 				(*cimatchi)->shutdown();
 				m_matches.erase( cimatchi );
 			}
-			addPort( cmatch->port );
 			m_table->deleteMatch( cmatch );
 			fprintf( stdout, "Deleted match %s\n", cmatch->name );
 		}

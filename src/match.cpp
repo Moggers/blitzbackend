@@ -30,11 +30,11 @@ namespace Game
 		renaming{atoi(match[11])},
 		clientstart{atoi(match[12])}
 	{
-		this->mapName = (char*)malloc( strlen( map[0] ) );
+		this->mapName = (char*)malloc( strlen( map[0] ) + 1 );
 		strcpy( this->mapName, map[0] );
-		this->imgName = (char*)malloc( strlen( map[1] ) );
+		this->imgName = (char*)malloc( strlen( map[1] ) + 1 );
 		strcpy( this->imgName, map[1] );
-		this->name = (char*)malloc( strlen( match[3] ) );
+		this->name = (char*)malloc( strlen( match[3] ) + 1 );
 		strcpy( this->name, match[3] );
 		this->t = (int*)calloc( 4, sizeof( int ) );
 		this->t[0] = atoi(match[6]);

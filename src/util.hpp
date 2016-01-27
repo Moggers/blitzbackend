@@ -5,3 +5,5 @@ typedef struct popen2_s {
     int   from_child, to_child;
 } popen2_t;
 int popen2(const char *cmdline, popen2_t *childinfo);
+
+int port_check( int portno );
