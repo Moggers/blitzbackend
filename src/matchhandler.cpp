@@ -1,16 +1,15 @@
-#include "matchhandler.hpp"
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include "util.hpp"
 #include <iterator>
-#include "settings.hpp"
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <algorithm>
 #include <signal.h>
+#include <algorithm>
+#include "util.hpp"
+#include "settings.hpp"
 #include "matchhandler.hpp"
 
 namespace Server
