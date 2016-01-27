@@ -1,2 +1,4 @@
 language: C++
+compiler:
+- clang
 script: mkdir ./build && cd ./build && cmake .. && make && make install
