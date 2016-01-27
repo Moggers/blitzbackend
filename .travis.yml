@@ -1,3 +1,5 @@
+sudo: required
+dist: trusty
 language: C++
 compiler:
 - clang
@@ -9,9 +11,10 @@ before_install:
 
   # clang 3.4
   - if [ "$CXX" == "clang++" ]; then sudo add-apt-repository -y ppa:h-rayflood/llvm; fi
-  - sudo apt-get install libconfig++-dev libmysql++-dev
+  # Grab libconfig and mysql
   - sudo apt-get update -qq
-
+  - sudo apt-get install -y libconfig++-dev libmysql++-dev
+  
 install:
   # g++4.8.1
   - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
