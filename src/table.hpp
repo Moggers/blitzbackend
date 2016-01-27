@@ -1,6 +1,8 @@
 #pragma once
 #include <mysql.h>
 #include <my_global.h>
+#undef min
+#undef max
 #include "match.hpp"
 #include <stdarg.h>
 namespace SQL
