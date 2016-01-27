@@ -1,5 +1,6 @@
 #pragma once
 #include <mysql.h>
+#include <stdint.h>
 #include <my_global.h>
 namespace Game
 {
@@ -21,6 +22,7 @@ namespace Game
 		int research;
 		int renaming;
 		int clientstart;
+		uint64_t playerstring;
 		private:
 	};
 }

@@ -80,13 +80,13 @@ namespace Server
 				if( inst->watcher->mesg > 0 ) {
 					cmatch->status = inst->watcher->mesg / 5 + 10;
 					if( cmatch->status == 10 ) cmatch->status = 3;
-					m_table->saveMatch( cmatch );
 					inst->watcher->mesg = 0;
 				} else if( inst->watcher->mesg == -1 ) {
 					fprintf( stdout, "Match %s has either died or failed to start\n", cmatch->name );
 					cmatch->status = 99;
-					m_table->saveMatch( cmatch );
 				}
+				cmatch->playerstring = inst->watcher->playerbitmap;
+				m_table->saveMatch( cmatch );
 				continue;
 			}
 			// Copy the map files into dom4's search dir
@@ -102,6 +102,7 @@ namespace Server
 			popen2( com, proc );
 			Server::MatchInstance * inst = new Server::MatchInstance( proc, cmatch );
 			inst->watcher = new MatchWatcher( proc );
+			inst->watcher->port = port;
 			m_matches.push_back( inst );
 			fprintf( stdout, "Started server on port %d.\n", port );
 			cmatch->status = 1;

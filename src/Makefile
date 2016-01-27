@@ -1,4 +1,4 @@
-LIBS=$(shell mysql_config --libs) -lconfig
+LIBS=$(shell mysql_config --libs) -lconfig -lm
 all: clean main.o table.o match.o matchhandler.o matchinstance.o settings.o util.o matchwatcher.o
 	clang++ main.o table.o match.o matchhandler.o matchinstance.o settings.o util.o matchwatcher.o $(LIBS) -o ../bin/a.out -g --std=c++11 
 
