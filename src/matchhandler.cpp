@@ -142,7 +142,12 @@ namespace Server
 				fprintf( stdout, "I found a game that needed to be started so I killed the lobby\n" );
 				// There used to be some port grabbing code here but we can presume the lobby's port is now available
 			}
+			// Grab the map in case it for some reason was never grabbed when hosting
 			char * comstr = (char*)calloc( 256, sizeof( char ) );
+			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->mapName, Server::Settings::mappath_save );
+			system( comstr );
+			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->imgName, Server::Settings::mappath_save );
+			system( comstr );
 			// Generate the first turn if it hasn't already been done
 			if( cmatch->status == 2 ) {
 				fprintf( stdout, "I'm initiating the game.\n" );
