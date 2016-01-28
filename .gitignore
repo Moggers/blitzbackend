@@ -3,3 +3,4 @@ bin/
 server.cfg
 *.o
 src/*.swp
+build/

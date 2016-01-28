@@ -44,6 +44,12 @@ namespace Server
 			} else {
 				size_t pos = 0;
 				std::string * recvMessage = new std::string( buff );
+				// Search for failure string
+				pos = recvMessage->find( "nick fel" );
+				if( pos != std::string::npos ) {
+					watcher->mesg = STATUS_FAILURE;
+					return NULL;
+				}
 				// Search for start string
 				pos = recvMessage->find( "second" );
 				if( pos != std::string::npos ) {

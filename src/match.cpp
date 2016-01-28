@@ -48,7 +48,7 @@ namespace Game
 		char * str = (char*)calloc( 1024, sizeof( char ) );
 		if( this->clientstart == 0 )
 			sprintf( str, "--noclientstart " );
-		sprintf( str + strlen( str ), "--renaming %d -d --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s\"", 
+		sprintf( str + strlen( str ), "--renaming %d -d --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%d\"", 
 			this->renaming,
 			this->research,
 			this->age, 
@@ -57,7 +57,8 @@ namespace Game
 			this->t[2], 
 			this->t[3], 
 			this->mapName, 
-			this->name );
+			this->name,
+			this->id );
 		return str;
 	}
 }

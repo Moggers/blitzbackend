@@ -82,6 +82,7 @@ namespace Server
 					inst->watcher->mesg = 0;
 				} else if( inst->watcher->mesg == -1 ) {
 					fprintf( stdout, "Match %s has either died or failed to start\n", cmatch->name );
+					inst->shutdown();
 					cmatch->status = 99;
 				}
 				cmatch->playerstring = inst->watcher->playerbitmap;
