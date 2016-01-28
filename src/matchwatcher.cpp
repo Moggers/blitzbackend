@@ -22,6 +22,7 @@ namespace Server
 		pthread_create( watchThread, NULL, watchCallback, this );
 		mesg = 0;
 		playerbitmap = 0;
+		kill = 0;
 	}
 
 	void* MatchWatcher::watchCallback( void* arg )
@@ -38,19 +39,21 @@ namespace Server
 				return NULL;
 			}
 
-			pthread_mutex_lock( watcher->lock ); // Lock the mutex, we're doing Serious Shit now
 			nbytes = read( watcher->proc->from_child, buff, 1024 ); // Pull any data from the pipe to the server
+			pthread_mutex_lock( watcher->lock ); // Lock the mutex, we're doing Serious Shit now
 			if( nbytes == -1 ) {
 			} else {
 				size_t pos = 0;
-				std::string * recvMessage = new std::string( buff );
 				// Search for failure string
+				pos = std::string::npos;
+				std::string * recvMessage = new std::string( buff );
 				pos = recvMessage->find( "nick fel" );
 				if( pos != std::string::npos ) {
 					watcher->mesg = STATUS_FAILURE;
 					return NULL;
 				}
 				// Search for start string
+				pos = std::string::npos;
 				pos = recvMessage->find( "second" );
 				if( pos != std::string::npos ) {
 					buff[pos - 1] = '\0';
@@ -60,12 +63,14 @@ namespace Server
 					}
 				}
 				// Search for player join string
+				pos = std::string::npos;
 				pos = recvMessage->find( "Receiving god for " );
+				fflush( stdout );
 				if( pos != std::string::npos ) {
 					buff[pos+20] = '\0';
 					int pretenderid = atoi(&buff[pos+17]);
 					watcher->playerbitmap |= (uint64_t)pow( 2, pretenderid );
-					fprintf( stdout, "Found player: %ld\n", watcher->playerbitmap );
+					fprintf( stdout, "Found player: %d\n", pretenderid );
 					fflush( stdout );
 				}
 			}
