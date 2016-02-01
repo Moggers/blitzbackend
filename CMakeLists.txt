@@ -21,6 +21,6 @@ target_link_libraries( blitzserver
 	${CMAKE_THREAD_LIBS_INIT}
 	)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 
 install( TARGETS blitzserver DESTINATION bin)

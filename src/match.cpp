@@ -48,7 +48,7 @@ namespace Game
 		char * str = (char*)calloc( 1024, sizeof( char ) );
 		if( this->clientstart == 0 )
 			sprintf( str, "--noclientstart " );
-		sprintf( str + strlen( str ), "--renaming %d -d --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%d\"", 
+		sprintf( str + strlen( str ), "--renaming %d -d --statuspage debug.html --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%d\"", 
 			this->renaming,
 			this->research,
 			this->age, 
