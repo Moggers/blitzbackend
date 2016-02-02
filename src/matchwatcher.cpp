@@ -58,9 +58,8 @@ namespace Server
 				if( pos != std::string::npos ) {
 					buff[pos - 1] = '\0';
 					int countdown = atoi(&buff[pos-3]);
-					if( countdown % 5 == 0 ){
-						watcher->mesg = countdown; 
-					}
+					if( countdown % 5 == 0 )
+						watcher->mesg = 40 + countdown; 
 				}
 				// Search for player join string
 				pos = std::string::npos;

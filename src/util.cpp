@@ -68,6 +68,7 @@ int port_check( int portno )
 		server->h_length);
 
 	serv_addr.sin_port = htons(portno);
+	usleep( 500000 );
 	if( connect( sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
 		close( sockfd );
 		return 1;

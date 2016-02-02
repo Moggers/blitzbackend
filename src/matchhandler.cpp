@@ -77,7 +77,7 @@ namespace Server
 			} else {
 				Server::MatchInstance * inst = *getMatchInstance(cmatch);
 				if( inst->watcher->mesg > 0 ) {
-					cmatch->status = inst->watcher->mesg / 5 + 10;
+					cmatch->status = (inst->watcher->mesg-40)/ 5 + 10;
 					if( cmatch->status == 10 ) cmatch->status = 3;
 					inst->watcher->mesg = 0;
 				} else if( inst->watcher->mesg == -1 ) {
