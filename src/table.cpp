@@ -109,7 +109,7 @@ namespace SQL
 	void Table::saveMatch( Game::Match * match )
 	{
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "update matches set playerstring=%ld,status=%d,port=%d where id=%d;", match->playerstring, match->status, match->port, match->id );
+		sprintf( query, "update matches set playerstring=%ld,deleteplayerstring=%ld,status=%d,port=%d where id=%d;", match->playerstring, match->removeplayerstring, match->status, match->port, match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Warning! Failed to save data back to sql server: %d\n", sqlerrno );

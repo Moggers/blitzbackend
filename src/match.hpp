@@ -23,6 +23,7 @@ namespace Game
 		int renaming;
 		int clientstart;
 		uint64_t playerstring;
+		uint64_t removeplayerstring;
 		private:
 	};
 }

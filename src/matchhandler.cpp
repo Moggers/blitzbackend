@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include "nations.h"
 #include <sys/wait.h>
 #include <signal.h>
 #include <iterator>
@@ -56,6 +57,8 @@ namespace Server
 		exit( 1 );
 	}
 
+	// I would call this black magic. But black magic typically implies something is both feared, and respected.
+	// There is no respect here. Only abject terror.
 	void MatchHandler::startNewServers( void )
 	{
 		Game::Match ** matches = m_table->getMatchesByStatus( 6, 0, 1, 10, 11, 12, 13 );
@@ -85,7 +88,38 @@ namespace Server
 					inst->shutdown();
 					cmatch->status = 99;
 				}
-				cmatch->playerstring = inst->watcher->playerbitmap;
+
+				// Retrieve new reported nations 
+				cmatch->playerstring = cmatch->playerstring | inst->watcher->playerbitmap;
+				// Delete unwanted nations
+				if( cmatch->removeplayerstring != 0 ) {
+					ii = 0;
+					for( ii = 0; ii < 63; ii++ ) {
+						if( (cmatch->removeplayerstring >> ii & 1) == 1 ) {
+							cmatch->playerstring ^= (1 << ii);
+							cmatch->removeplayerstring ^=  (1 << ii);
+							char * filename = (char*)calloc( 64, sizeof( char ) );
+							sprintf( filename, "%s/%s%d/%s", Server::Settings::savepath, cmatch->name, cmatch->id, NATIONS::EA_TURNFILES[ii] );
+							fprintf( stdout, "Attempt remove %s\n", filename );
+							remove( filename );
+						}
+					}
+
+					// Shut down server
+					inst->shutdown();
+					m_matches.erase( getMatchInstance( cmatch ) );
+					// Start it again and pretend nothing happened
+					// I'm going to hell
+					char * com = (char*)calloc( 512, sizeof( char ) );
+					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, getSpecificPort( cmatch->port ), cmatch->createConfStr() );
+					popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
+					popen2( com, proc );
+					inst = new Server::MatchInstance( proc, cmatch );
+					m_matches.push_back( inst );
+				}
+				// Report deleted nations back to watched so he doesn't insist they're still there
+				inst->watcher->playerbitmap = cmatch->playerstring;
+
 				m_table->saveMatch( cmatch );
 				continue;
 			}
@@ -101,8 +135,6 @@ namespace Server
 			popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 			popen2( com, proc );
 			Server::MatchInstance * inst = new Server::MatchInstance( proc, cmatch );
-			inst->watcher = new MatchWatcher( proc );
-			inst->watcher->port = port;
 			m_matches.push_back( inst );
 			fprintf( stdout, "Started server on port %d.\n", port );
 			cmatch->status = 1;

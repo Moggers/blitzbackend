@@ -15,6 +15,8 @@ namespace Server
 	{
 		this->match = (Game::Match*)calloc( 1, sizeof( Game::Match ) );
 		memcpy( this->match, match, sizeof( Game::Match ) );
+		watcher = new MatchWatcher( process );
+		watcher->port = match->port;
 	}
 
 	int MatchInstance::shutdown( void )

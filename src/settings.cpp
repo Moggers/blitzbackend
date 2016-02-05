@@ -7,6 +7,7 @@ namespace Server
 {
 	const char * Settings::mappath_save;
 	const char * Settings::mappath_load;
+	const char * Settings::savepath;
 	const char * Settings::exepath;
 	const char * Settings::dbuser;
 	const char * Settings::dbpass;
@@ -44,10 +45,19 @@ namespace Server
 		if( canread && config_lookup_string( cf, "mappath_save", &mappath_save ) )
 			fprintf( stdout, "Found mappath save directory: %s\n", mappath_save );
 		else {
-			fprintf( stdout, "Failed to map save directory. Please tell me where it is.\n" );
+			fprintf( stdout, "Failed to find map save directory. Please tell me where it is.\n" );
 			mappath_save = (const char *)calloc( 512, sizeof( char ) );
 			fscanf( stdin, "%s", (char*)mappath_save );
 			config_setting_set_string( config_lookup( cf, "mappath_save"), mappath_save );
+		}
+
+		if( canread && config_lookup_string( cf, "savepath", &savepath ) )
+			fprintf( stdout, "Found mappath save directory: %s\n", savepath );
+		else {
+			fprintf( stdout, "Failed to find dom4 save directory. Please tell me where it is.\n" );
+			savepath = (const char *)calloc( 512, sizeof( char ) );
+			fscanf( stdin, "%s", (char*)savepath );
+			config_setting_set_string( config_lookup( cf, "savepath"), savepath );
 		}
 
 		if( canread && config_lookup_string( cf, "exepath", &exepath ) )
