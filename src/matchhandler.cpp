@@ -1,5 +1,4 @@
 #include <unistd.h>
-#include "nations.h"
 #include <sys/wait.h>
 #include <signal.h>
 #include <iterator>
@@ -89,22 +88,15 @@ namespace Server
 					cmatch->status = 99;
 				}
 
-				// Retrieve new reported nations 
-				cmatch->playerstring = cmatch->playerstring | inst->watcher->playerbitmap;
 				// Delete unwanted nations
-				if( cmatch->removeplayerstring != 0 ) {
-					ii = 0;
-					for( ii = 0; ii < 63; ii++ ) {
-						if( (cmatch->removeplayerstring >> ii & 1) == 1 ) {
-							cmatch->playerstring ^= (1 << ii);
-							cmatch->removeplayerstring ^=  (1 << ii);
-							char * filename = (char*)calloc( 64, sizeof( char ) );
-							sprintf( filename, "%s/%s%d/%s", Server::Settings::savepath, cmatch->name, cmatch->id, NATIONS::EA_TURNFILES[ii] );
-							fprintf( stdout, "Attempt remove %s\n", filename );
-							remove( filename );
-						}
+				Game::Nation ** nations = m_table->getDeleteRequests( cmatch );
+				if( nations[0] != NULL ) {
+					for( int ii = 0; nations[ii] != NULL; ii++ ) {
+						char * str= (char*)calloc( 512, sizeof( char ) );
+						sprintf( str, "%s/%s%d/%s.2h", Settings::savepath, cmatch->name, cmatch->id, nations[ii]->turnname );
+						remove( str );
+						m_table->removeNationFromMatch( cmatch, nations[ii] );
 					}
-
 					// Shut down server
 					inst->shutdown();
 					m_matches.erase( getMatchInstance( cmatch ) );
@@ -114,11 +106,9 @@ namespace Server
 					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, getSpecificPort( cmatch->port ), cmatch->createConfStr() );
 					popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 					popen2( com, proc );
-					inst = new Server::MatchInstance( proc, cmatch );
+					inst = new Server::MatchInstance( proc, cmatch, m_table );
 					m_matches.push_back( inst );
 				}
-				// Report deleted nations back to watched so he doesn't insist they're still there
-				inst->watcher->playerbitmap = cmatch->playerstring;
 
 				m_table->saveMatch( cmatch );
 				continue;
@@ -134,7 +124,7 @@ namespace Server
 			sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, port, cmatch->createConfStr() );
 			popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 			popen2( com, proc );
-			Server::MatchInstance * inst = new Server::MatchInstance( proc, cmatch );
+			Server::MatchInstance * inst = new Server::MatchInstance( proc, cmatch, m_table );
 			m_matches.push_back( inst );
 			fprintf( stdout, "Started server on port %d.\n", port );
 			cmatch->status = 1;
@@ -157,7 +147,7 @@ namespace Server
 			Server::MatchInstance * cimatch = NULL;
 			if( cimatchi == m_matches.end() ) { // If we reached the end of th matches then create a new one normally
 				fprintf( stdout, "I found a match that needs to be begun.\nThere didn't appear to be a lobby running so it was not necessary to kill it.\n" );
-				cimatch = new Server::MatchInstance( (popen2_t*)calloc( 1, sizeof( popen2_t ) ), cmatch );
+				cimatch = new Server::MatchInstance( (popen2_t*)calloc( 1, sizeof( popen2_t ) ), cmatch, m_table );
 				m_matches.push_back( cimatch );
 				// Try to grab the port the lobby (that apparently existed in some long ago era) was already on, or a new one if it's not available
 				cmatch->port = getSpecificPort( cmatch->port );

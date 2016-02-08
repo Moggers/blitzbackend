@@ -2,6 +2,7 @@
 #include "match.hpp"
 #include "util.hpp"
 #include "matchwatcher.hpp"
+#include "table.hpp"
 #include <stdio.h>
 namespace Server
 {
@@ -10,7 +11,7 @@ namespace Server
 		public:
 		Game::Match * match;
 		popen2_t * process;
-		MatchInstance( popen2_t * process, Game::Match * match );
+		MatchInstance( popen2_t * process, Game::Match * match, SQL::Table * table );
 		MatchInstance( void );
 		int shutdown( void );
 		Server::MatchWatcher * watcher;

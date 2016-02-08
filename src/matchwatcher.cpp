@@ -1,4 +1,5 @@
 #include <string>
+#include "nation.hpp"
 #include "settings.hpp"
 #include <math.h>
 #include <signal.h>
@@ -13,7 +14,7 @@
 
 namespace Server
 {
-	MatchWatcher::MatchWatcher( popen2_t * proc ): proc{proc}
+	MatchWatcher::MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match ): proc{proc}, table{table}, match{match}
 	{
 		watchThread = (pthread_t*)calloc( 1, sizeof( pthread_t ) );
 		pollproc = (popen2_t*)calloc( 1, sizeof( popen2_t) );
@@ -23,6 +24,7 @@ namespace Server
 		mesg = 0;
 		playerbitmap = 0;
 		kill = 0;
+
 	}
 
 	void* MatchWatcher::watchCallback( void* arg )
@@ -67,10 +69,10 @@ namespace Server
 				fflush( stdout );
 				if( pos != std::string::npos ) {
 					buff[pos+20] = '\0';
-					int pretenderid = atoi(&buff[pos+17]);
-					watcher->playerbitmap |= (uint64_t)pow( 2, pretenderid );
-					fprintf( stdout, "Found player: %d\n", pretenderid );
-					fflush( stdout );
+					int nationid = atoi(&buff[pos+17]);
+					Game::Nation * nation = watcher->table->getNation( nationid );
+					watcher->table->addNationToMatch( watcher->match, nation );
+					fprintf( stdout, "Added nation %s to match %s(%d)\n", nation->name, watcher->match->name, watcher->match->id );
 				}
 			}
 

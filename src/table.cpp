@@ -109,7 +109,7 @@ namespace SQL
 	void Table::saveMatch( Game::Match * match )
 	{
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "update matches set playerstring=%ld,deleteplayerstring=%ld,status=%d,port=%d where id=%d;", match->playerstring, match->removeplayerstring, match->status, match->port, match->id );
+		sprintf( query, "update matches set status=%d,port=%d where id=%d;", match->status, match->port, match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Warning! Failed to save data back to sql server: %d\n", sqlerrno );
@@ -121,8 +121,62 @@ namespace SQL
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		sprintf( query, "delete from matches where id=%d", match->id );
 		int sqlerrno;
-		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to save data back to sql server: %d\n", sqlerrno );
-		}
 	}
+
+	void Table::removeNationFromMatch( Game::Match * match, Game::Nation * nation )
+	{
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "delete from matchnations where matchid=%d AND nationid=%d)", match->id, nation->id );
+		int sqlerrno;
+		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
+			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n", sqlerrno );
+	}
+
+	void Table::addNationToMatch( Game::Match * match, Game::Nation * nation )
+	{
+		removeNationFromMatch( match, nation );
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "insert into matchnations values (%d, %d, 0)", match->id, nation->id );
+		int sqlerrno;
+		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
+			fprintf( stdout, "Failed to add nation to match in database (%d,%d) %d\n", match->id, nation->id, sqlerrno );
+	}
+
+	Game::Nation * Table::getNation( int id )
+	{
+		char * query = (char*)calloc(2048, sizeof( char ) );
+		sprintf( query, "select * from nations where id=%d", id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+			fprintf( stdout, "Failed to retrieve nation: %d\n", sqlerrno );
+		MYSQL_RES * nationstuff = mysql_store_result( m_con );
+		if( nationstuff == NULL ) 
+			return NULL;
+		MYSQL_ROW nationrow = mysql_fetch_row( nationstuff );
+		Game::Nation * newNation = new Game::Nation( id, nationrow[1], nationrow[2], nationrow[3] );
+		return newNation;
+	}
+
+	Game::Nation ** Table::getDeleteRequests( Game::Match * match )
+	{
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "select nationid from matchnations where matchid=%d AND markdelete=1", match->id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+			fprintf( stdout, "Failed to retrieve nation delete requests: %d\n", sqlerrno );
+		MYSQL_RES * nationstuff = mysql_store_result( m_con );
+		if( nationstuff == NULL ) 
+			return NULL;
+		MYSQL_ROW nationrow;
+		int i = 0;
+		Game::Nation ** nations = (Game::Nation**)calloc( 64, sizeof( Game::Nation* ) );
+		while( ( nationrow = mysql_fetch_row( nationstuff ) ) != NULL ) {
+			nations[i] = getNation( atoi(nationrow[0]) );
+			i++;
+		}
+		return nations;
+	}
+
 }

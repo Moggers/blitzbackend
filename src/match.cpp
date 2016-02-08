@@ -28,9 +28,7 @@ namespace Game
 		port{atoi(match[5])},
 		research{atoi(match[10])},
 		renaming{atoi(match[11])},
-		clientstart{atoi(match[12])},
-		playerstring{atol(match[13])},
-		removeplayerstring{atol(match[14])}
+		clientstart{atoi(match[12])}
 	{
 		this->mapName = (char*)malloc( strlen( map[0] ) + 1 );
 		strcpy( this->mapName, map[0] );

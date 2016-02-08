@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdlib.h>
+#include "table.hpp"
 
 namespace Server
 {
@@ -11,11 +12,11 @@ namespace Server
 		process = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 		match = NULL;
 	}
-	MatchInstance::MatchInstance( popen2_t * process, Game::Match * match ) :process{process}
+	MatchInstance::MatchInstance( popen2_t * process, Game::Match * match, SQL::Table * table ) :process{process}
 	{
 		this->match = (Game::Match*)calloc( 1, sizeof( Game::Match ) );
 		memcpy( this->match, match, sizeof( Game::Match ) );
-		watcher = new MatchWatcher( process );
+		watcher = new MatchWatcher( process, table, match );
 		watcher->port = match->port;
 	}
 
