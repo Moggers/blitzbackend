@@ -128,7 +128,8 @@ namespace SQL
 	void Table::removeNationFromMatch( Game::Match * match, Game::Nation * nation )
 	{
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "delete from matchnations where matchid=%d AND nationid=%d)", match->id, nation->id );
+		sprintf( query, "delete from matchnations where match_id=%d AND nation_id=%d", match->id, nation->id );
+		fprintf( stdout, query );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
 			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n", sqlerrno );
@@ -138,7 +139,7 @@ namespace SQL
 	{
 		removeNationFromMatch( match, nation );
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "insert into matchnations values (%d, %d, 0)", match->id, nation->id );
+		sprintf( query, "insert into matchnations values (0, %d, %d, 0)", nation->id, match->id );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
 			fprintf( stdout, "Failed to add nation to match in database (%d,%d) %d\n", match->id, nation->id, sqlerrno );
@@ -162,7 +163,7 @@ namespace SQL
 	Game::Nation ** Table::getDeleteRequests( Game::Match * match )
 	{
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select nationid from matchnations where matchid=%d AND markdelete=1", match->id );
+		sprintf( query, "select nation_id from matchnations where match_id=%d AND markdelete=1", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Failed to retrieve nation delete requests: %d\n", sqlerrno );
