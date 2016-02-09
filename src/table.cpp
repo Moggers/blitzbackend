@@ -129,7 +129,6 @@ namespace SQL
 	{
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		sprintf( query, "delete from matchnations where match_id=%d AND nation_id=%d", match->id, nation->id );
-		fprintf( stdout, query );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
 			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n", sqlerrno );
