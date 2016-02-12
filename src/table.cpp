@@ -119,10 +119,13 @@ namespace SQL
 	void Table::deleteMatch( Game::Match * match )
 	{
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "delete from matches where id=%d", match->id );
+		sprintf( query, "delete from matchnations where match_id=%d", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to save data back to sql server: %d\n", sqlerrno );
+			fprintf( stdout, "Warning! Failed to remvoe players from match %d\n", sqlerrno );
+		sprintf( query, "delete from matches where id=%d", match->id );
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+			fprintf( stdout, "Warning! Failed to delete match at sql %d\n", sqlerrno );
 	}
 
 	void Table::removeNationFromMatch( Game::Match * match, Game::Nation * nation )
