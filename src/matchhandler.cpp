@@ -24,8 +24,8 @@ namespace Server
 
 	int MatchHandler::getPort( void )
 	{
-		int ii = 4096;
-		for( ii = 4096; ii > 2048; ii-- ) {
+		int ii = PORT_MAX;
+		for( ii = PORT_MAX; ii > PORT_MIN; ii-- ) {
 			if( port_check( ii ) == 1 ) {
 				return ii;
 			}
@@ -113,21 +113,25 @@ namespace Server
 				m_table->saveMatch( cmatch );
 				continue;
 			}
-			// Copy the map files into dom4's search dir
-			char * comstr = (char*)calloc( 256, sizeof( char ) );
-			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->mapName, Server::Settings::mappath_save );
-			system( comstr );
-			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->imgName, Server::Settings::mappath_save );
-			system( comstr );
-			// Spawn
-			char * com = (char*)calloc( 512, sizeof( char ) );
-			sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, port, cmatch->createConfStr() );
-			popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
-			popen2( com, proc );
-			Server::MatchInstance * inst = new Server::MatchInstance( proc, cmatch, m_table );
-			m_matches.push_back( inst );
-			fprintf( stdout, "Started server on port %d.\n", port );
-			cmatch->status = 1;
+			if( port == -1 ) {
+				cmatch->status = 101;
+			} else {
+				// Copy the map files into dom4's search dir
+				char * comstr = (char*)calloc( 256, sizeof( char ) );
+				sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->mapName, Server::Settings::mappath_save );
+				system( comstr );
+				sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->imgName, Server::Settings::mappath_save );
+				system( comstr );
+				// Spawn
+				char * com = (char*)calloc( 512, sizeof( char ) );
+				sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, port, cmatch->createConfStr() );
+				popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
+				popen2( com, proc );
+				Server::MatchInstance * inst = new Server::MatchInstance( proc, cmatch, m_table );
+				m_matches.push_back( inst );
+				fprintf( stdout, "Started server on port %d.\n", port );
+				cmatch->status = 1;
+			}
 			cmatch->port = port;
 			m_table->saveMatch( cmatch );
 		}
@@ -165,26 +169,30 @@ namespace Server
 				fprintf( stdout, "I found a game that needed to be started so I killed the lobby\n" );
 				// There used to be some port grabbing code here but we can presume the lobby's port is now available
 			}
-			// Grab the map in case it for some reason was never grabbed when hosting
-			char * comstr = (char*)calloc( 256, sizeof( char ) );
-			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->mapName, Server::Settings::mappath_save );
-			system( comstr );
-			sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->imgName, Server::Settings::mappath_save );
-			system( comstr );
-			// Generate the first turn if it hasn't already been done
-			if( cmatch->status == 2 ) {
-				fprintf( stdout, "I'm initiating the game.\n" );
-				sprintf( comstr, "%s --newgame -T %s", Server::Settings::exepath, cmatch->createConfStr() );
-				fprintf( stdout, "%s\n", comstr );
+			if( cmatch->port == -1 ) {
+				cmatch->status = 101;
+			} else {
+				// Grab the map in case it for some reason was never grabbed when hosting
+				char * comstr = (char*)calloc( 256, sizeof( char ) );
+				sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->mapName, Server::Settings::mappath_save );
+				system( comstr );
+				sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->imgName, Server::Settings::mappath_save );
+				system( comstr );
+				// Generate the first turn if it hasn't already been done
+				if( cmatch->status == 2 ) {
+					fprintf( stdout, "I'm initiating the game.\n" );
+					sprintf( comstr, "%s --newgame -T %s", Server::Settings::exepath, cmatch->createConfStr() );
+					fprintf( stdout, "%s\n", comstr );
+					popen2( comstr, cimatch->process );
+					waitpid( cimatch->process->child_pid, NULL, 0 );
+				}
+				// Create the server
+				fprintf( stdout, "Done, hosting game now on port %d\n", cmatch->port );
+				sprintf( comstr, "%s --tcpserver -T --port %d %s", Server::Settings::exepath, cmatch->port, cmatch->createConfStr() );
 				popen2( comstr, cimatch->process );
-				waitpid( cimatch->process->child_pid, NULL, 0 );
+				// Mark the game as started and write it to the table
+				cmatch->status = 3;
 			}
-			// Create the server
-			fprintf( stdout, "Done, hosting game now on port %d\n", cmatch->port );
-			sprintf( comstr, "%s --tcpserver -T --port %d %s", Server::Settings::exepath, cmatch->port, cmatch->createConfStr() );
-			popen2( comstr, cimatch->process );
-			// Mark the game as started and write it to the table
-			cmatch->status = 3;
 			m_table->saveMatch( cmatch );
 		}
 	}
