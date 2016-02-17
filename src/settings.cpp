@@ -7,6 +7,8 @@ namespace Server
 {
 	const char * Settings::mappath_save;
 	const char * Settings::mappath_load;
+	const char * Settings::modpath_save;
+	const char * Settings::modpath_load;
 	const char * Settings::savepath;
 	const char * Settings::exepath;
 	const char * Settings::dbuser;
@@ -49,6 +51,23 @@ namespace Server
 			mappath_save = (const char *)calloc( 512, sizeof( char ) );
 			fscanf( stdin, "%s", (char*)mappath_save );
 			config_setting_set_string( config_lookup( cf, "mappath_save"), mappath_save );
+		}
+		if( canread && config_lookup_string( cf, "modpath_load", &modpath_load ) )
+			fprintf( stdout, "Found modpath load directory: %s\n", modpath_load );
+		else {
+			fprintf( stdout, "Failed to find mod load directory. Please tell me where it is.\n" );
+			modpath_load = (const char *)calloc( 512, sizeof( char ) );
+			fscanf( stdin, "%s", (char*)modpath_load );
+			config_setting_set_string( config_lookup( cf, "modpath_load"), modpath_load );
+		}
+		
+		if( canread && config_lookup_string( cf, "modpath_save", &modpath_save ) )
+			fprintf( stdout, "Found modpath save directory: %s\n", modpath_save );
+		else {
+			fprintf( stdout, "Failed to find mod save directory. Please tell me where it is.\n" );
+			modpath_save = (const char *)calloc( 512, sizeof( char ) );
+			fscanf( stdin, "%s", (char*)modpath_save );
+			config_setting_set_string( config_lookup( cf, "modpath_save"), modpath_save );
 		}
 
 		if( canread && config_lookup_string( cf, "savepath", &savepath ) )
@@ -99,6 +118,8 @@ namespace Server
 		if( config_write_file( cf, configfile ) == CONFIG_FALSE ) {
 			fprintf( stdout, "Failed to write config\n" );
 		}
+		free( cf );
+		free( configfile );
 		return 0;
 	}
 }

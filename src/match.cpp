@@ -20,7 +20,7 @@ namespace Game
 		this->t[3] = t4;
 	}
 
-	Match::Match( MYSQL_ROW match, MYSQL_ROW map ) :
+	Match::Match( MYSQL_ROW match, MYSQL_ROW map, std::vector<Game::Mod*> * mods ) :
 		id{atoi(match[0])},
 		mapid{atoi(match[1])},
 		status{atoi(match[4])},
@@ -41,13 +41,17 @@ namespace Game
 		this->t[1] = atoi(match[7]);
 		this->t[2] = atoi(match[8]);
 		this->t[3] = atoi(match[9]);
+		this->mods = mods;
 	}
 
 	char* Match::createConfStr( void )
 	{
-		char * str = (char*)calloc( 1024, sizeof( char ) );
+		char * str = (char*)calloc( 2048, sizeof( char ) );
 		if( this->clientstart == 0 )
 			sprintf( str, "--noclientstart " );
+		for( std::vector<Game::Mod*>::iterator it = this->mods->begin(); it != this->mods->end(); it++ ) {
+			sprintf( str + strlen( str ), "--enablemod %s ", (*it)->m_dmname );
+		}
 		sprintf( str + strlen( str ), "--renaming %d -d --statuspage debug.html --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%d\"", 
 			this->renaming,
 			this->research,

@@ -48,15 +48,15 @@ namespace Server
 				size_t pos = 0;
 				// Search for failure string
 				pos = std::string::npos;
-				std::string * recvMessage = new std::string( buff );
-				pos = recvMessage->find( "nick fel" );
+				std::string recvMessage = std::string( buff );
+				pos = recvMessage.find( "nick fel" );
 				if( pos != std::string::npos ) {
 					watcher->mesg = STATUS_FAILURE;
 					return NULL;
 				}
 				// Search for start string
 				pos = std::string::npos;
-				pos = recvMessage->find( "second" );
+				pos = recvMessage.find( "second" );
 				if( pos != std::string::npos ) {
 					buff[pos - 1] = '\0';
 					int countdown = atoi(&buff[pos-3]);
@@ -65,7 +65,7 @@ namespace Server
 				}
 				// Search for player join string
 				pos = std::string::npos;
-				pos = recvMessage->find( "Receiving god for " );
+				pos = recvMessage.find( "Receiving god for " );
 				fflush( stdout );
 				if( pos != std::string::npos ) {
 					buff[pos+20] = '\0';

@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
+#include "mod.hpp"
 #include <signal.h>
 #include <iterator>
 #include <stdio.h>
@@ -109,6 +110,7 @@ namespace Server
 					inst = new Server::MatchInstance( proc, cmatch, m_table );
 					m_matches.push_back( inst );
 				}
+				free( nations );
 
 				m_table->saveMatch( cmatch );
 				continue;
@@ -122,11 +124,19 @@ namespace Server
 				system( comstr );
 				sprintf( comstr, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, cmatch->mapid, cmatch->imgName, Server::Settings::mappath_save );
 				system( comstr );
+				// Also the mods
+				for( std::vector<Game::Mod*>::iterator it = cmatch->mods->begin(); it != cmatch->mods->end(); it++ ) {
+					sprintf( comstr, "cp \"%s/%d/* \"%s\"", Server::Settings::mappath_load, (*it)->m_id, Server::Settings::modpath_save );
+				}
+				free( comstr );
 				// Spawn
 				char * com = (char*)calloc( 512, sizeof( char ) );
-				sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, port, cmatch->createConfStr() );
+				char * confstr = cmatch->createConfStr();
+				sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, port, confstr );
+				free( confstr );
 				popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 				popen2( com, proc );
+				free( com );
 				Server::MatchInstance * inst = new Server::MatchInstance( proc, cmatch, m_table );
 				m_matches.push_back( inst );
 				fprintf( stdout, "Started server on port %d.\n", port );
@@ -135,6 +145,7 @@ namespace Server
 			cmatch->port = port;
 			m_table->saveMatch( cmatch );
 		}
+		free( matches );
 	}
 
 	void MatchHandler::beginGames( void )
@@ -195,6 +206,7 @@ namespace Server
 			}
 			m_table->saveMatch( cmatch );
 		}
+		free( matches );
 	}
 
 	void MatchHandler::shutdownServers( void )
@@ -219,6 +231,7 @@ namespace Server
 			m_table->deleteMatch( cmatch );
 			fprintf( stdout, "Deleted match %s\n", cmatch->name );
 		}
+		free( matches );
 	}
 }
 

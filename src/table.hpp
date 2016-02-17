@@ -6,6 +6,8 @@
 #undef max
 #include "match.hpp"
 #include <stdarg.h>
+#include "mod.hpp"
+#include <vector>
 namespace SQL
 {
 	class Table
@@ -15,6 +17,7 @@ namespace SQL
 		~Table( void );
 		Game::Match ** getAllMatches( void );
 		Game::Match ** getMatchesByStatus( int count, ... );
+		std::vector<Game::Mod*> * getModsByMatch( int matchid );
 		void saveMatch( Game::Match * match );
 		void deleteMatch(Game::Match * match );
 		void removeNationFromMatch( Game::Match * match, Game::Nation * nation );

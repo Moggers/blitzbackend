@@ -26,6 +26,7 @@ namespace SQL
 			fprintf( stdout, "%s\n", mysql_error( m_con ) );
 			mysql_close( m_con );
 		}
+		free( query );
 
 		fprintf( stdout, "Connected to database %s\n", Server::Settings::dbname );
 	}
@@ -57,7 +58,8 @@ namespace SQL
 				return NULL;
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
-			matches[ii] = new Game::Match( row, mappathrow );
+			std::vector<Game::Mod*> * mods = getModsByMatch( atoi(row[0]) );
+			matches[ii] = new Game::Match( row, mappathrow, mods );
 			ii++;
 		}
 
@@ -85,6 +87,7 @@ namespace SQL
 		if( res == NULL ) {
 			return NULL;
 		}
+		free( query );
 
 		Game::Match ** matches = (Game::Match**)calloc( 256, sizeof( Game::Match * ) );
 
@@ -99,12 +102,47 @@ namespace SQL
 				return NULL;
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
-			matches[ii] = new Game::Match( row, mappathrow );
+			std::vector<Game::Mod*> * mods = getModsByMatch( atoi(row[0]) );
+			matches[ii] = new Game::Match( row, mappathrow, mods );
 			ii++;
+			free( query );
+			mysql_free_result( mappath );
 		}
-
+		mysql_free_result( res );
 		return matches;
 	};
+
+	std::vector<Game::Mod*> * Table::getModsByMatch( int matchid )
+	{
+		char * query = (char*)calloc( 128, sizeof( char ) );
+		sprintf( query, "select mod_id from matchmods where match_id=%d;", matchid );
+		if( mysql_query( m_con, query ) ) {
+			free( query );
+			return NULL;
+		}
+		MYSQL_RES * modids = mysql_store_result( m_con );
+		if( modids == NULL ) {
+			free( query );
+			return NULL;
+		}
+
+		std::vector<Game::Mod*> * returnvec = new std::vector<Game::Mod*>(0);
+		while( MYSQL_ROW modidrow = mysql_fetch_row(modids) ) {
+			sprintf( query, "select dmname from mods where id=%s", modidrow[0] );
+			if( mysql_query( m_con, query ) ) {
+				free( query );
+				return NULL;
+			}
+			MYSQL_RES * modname = mysql_store_result( m_con );
+			MYSQL_ROW modnamerow = mysql_fetch_row( modname );
+			Game::Mod * mod = new Game::Mod( atoi(modidrow[0]), modnamerow[0] );
+			returnvec->push_back( mod );
+			mysql_free_result( modname );
+		}
+		free( query );
+		mysql_free_result( modids );
+		return returnvec;
+	}
 
 	void Table::saveMatch( Game::Match * match )
 	{
@@ -114,6 +152,7 @@ namespace SQL
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Warning! Failed to save data back to sql server: %d\n", sqlerrno );
 		}
+		free( query );
 	}
 
 	void Table::deleteMatch( Game::Match * match )
@@ -179,6 +218,7 @@ namespace SQL
 			nations[i] = getNation( atoi(nationrow[0]) );
 			i++;
 		}
+		mysql_free_result( nationstuff );
 		return nations;
 	}
 
