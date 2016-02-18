@@ -2,6 +2,8 @@
 #include <mysql.h>
 #include <stdint.h>
 #include <my_global.h>
+#undef min
+#undef max
 #include <vector>
 #include "mod.hpp"
 namespace Game
