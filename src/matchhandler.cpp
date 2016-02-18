@@ -117,6 +117,8 @@ namespace Server
 						fprintf( stdout, "Port %d somehow still/already in use, ", cmatch->port );
 						cmatch->port = getPort();
 						fprintf( stdout, "assigning new port %d", cmatch->port );
+					} else {
+						fprintf( stdout, "Successfully regrabbed port %d\n", cmatch->port );
 					}
 					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, cmatch->port, cmatch->createConfStr() );
 					fprintf( stdout, "restarting\n" );
