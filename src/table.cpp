@@ -164,7 +164,7 @@ namespace SQL
 			fprintf( stdout, "Warning! Failed to remvoe players from match %d\n", sqlerrno );
 		sprintf( query, "delete from matches where id=%d", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to delete match at sql %d\n", sqlerrno );
+			fprintf( stdout, "Warning! Failed to delete match %d at sql %d\n", match->id, sqlerrno );
 	}
 
 	void Table::removeNationFromMatch( Game::Match * match, Game::Nation * nation )
