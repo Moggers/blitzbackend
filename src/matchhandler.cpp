@@ -106,6 +106,7 @@ namespace Server
 						m_table->removeNationFromMatch( cmatch, nations[ii] );
 					}
 					// Shut down server
+					fprintf( stdout, "Shutting down for player remove\n" );
 					inst->shutdown();
 					m_matches.erase( getMatchInstance( cmatch ) );
 					// Start it again and pretend nothing happened
@@ -118,8 +119,11 @@ namespace Server
 						fprintf( stdout, "assigning new port %d", cmatch->port );
 					}
 					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, cmatch->port, cmatch->createConfStr() );
+					fprintf( stdout, "restarting\n" );
 					popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 					popen2( com, proc );
+					fprintf( stdout, "done\n" );
+					inst->shutdown();
 					inst = new Server::MatchInstance( proc, cmatch, m_table );
 					m_matches.push_back( inst );
 				}
