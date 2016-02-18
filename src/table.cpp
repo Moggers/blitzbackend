@@ -161,7 +161,11 @@ namespace SQL
 		sprintf( query, "delete from matchnations where match_id=%d", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to remvoe players from match %d\n", sqlerrno );
+			fprintf( stdout, "Warning! Failed to remove players from match %d\n", sqlerrno );
+		sprintf( query, "delete from matchmods where match_id=%d", match->id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+			fprintf( stdout, "Warning! Failed to remove mods from match %d\n", sqlerrno );
 		sprintf( query, "delete from matches where id=%d", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to delete match %d at sql %d\n", match->id, sqlerrno );
