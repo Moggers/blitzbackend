@@ -64,7 +64,7 @@ namespace Server
 		exit( 1 );
 	}
 
-	// I would call this black magic. But black magic typically implies something is both feared, and respected.
+	// I would call this black magic. But black magic typically inspires both fear, and respect.
 	// There is no respect here. Only abject terror.
 	void MatchHandler::startNewServers( void )
 	{
@@ -111,7 +111,13 @@ namespace Server
 					// Start it again and pretend nothing happened
 					// I'm going to hell
 					char * com = (char*)calloc( 512, sizeof( char ) );
-					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, blockUntilPortFree( cmatch->port ), cmatch->createConfStr() );
+					int port = getSpecificPort( cmatch->port );
+					if( port == -1 ) {
+						fprintf( stdout, "Port %d somehow still/already in use, ", cmatch->port );
+						cmatch->port = getPort();
+						fprintf( stdout, "assigning new port %d", cmatch->port );
+					}
+					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, cmatch->port, cmatch->createConfStr() );
 					popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 					popen2( com, proc );
 					inst = new Server::MatchInstance( proc, cmatch, m_table );
