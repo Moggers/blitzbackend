@@ -41,6 +41,13 @@ namespace Server
 		else return -1;
 	}
 
+	int MatchHandler::blockUntilPortFree( int port )
+	{
+		while( port_check( port != 1 ) {
+		}
+		return port;
+	}
+
 	std::vector<Server::MatchInstance*>::iterator MatchHandler::getMatchInstance( Game::Match * c )
 	{
 		return find_if( m_matches.begin(), m_matches.end(), [c](Server::MatchInstance * in)->int
@@ -104,8 +111,7 @@ namespace Server
 					// Start it again and pretend nothing happened
 					// I'm going to hell
 					char * com = (char*)calloc( 512, sizeof( char ) );
-					sleep( 1 );
-					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, getSpecificPort( cmatch->port ), cmatch->createConfStr() );
+					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, blockUntilPortFree( cmatch->port ), cmatch->createConfStr() );
 					popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 					popen2( com, proc );
 					inst = new Server::MatchInstance( proc, cmatch, m_table );
