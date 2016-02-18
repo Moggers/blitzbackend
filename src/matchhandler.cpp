@@ -104,6 +104,7 @@ namespace Server
 					// Start it again and pretend nothing happened
 					// I'm going to hell
 					char * com = (char*)calloc( 512, sizeof( char ) );
+					sleep( 1 );
 					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, getSpecificPort( cmatch->port ), cmatch->createConfStr() );
 					popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 					popen2( com, proc );
