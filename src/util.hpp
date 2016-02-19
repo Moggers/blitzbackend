@@ -9,3 +9,6 @@ typedef struct popen2_s {
 int popen2(const char *cmdline, popen2_t *childinfo);
 
 int port_check( int portno );
+int get_port( void );
+int get_specific_port( int port );
+int try_get_port( int port );

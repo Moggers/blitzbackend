@@ -16,14 +16,14 @@ namespace Server
 {
 	MatchWatcher::MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match ): proc{proc}, table{table}, match{match}
 	{
+		mesg = 0;
+		playerbitmap = 0;
+		kill = 0;
 		watchThread = (pthread_t*)calloc( 1, sizeof( pthread_t ) );
 		pollproc = (popen2_t*)calloc( 1, sizeof( popen2_t) );
 		lock = (pthread_mutex_t*)calloc( 1, sizeof( pthread_mutex_t ) );
 		pthread_mutex_init( lock, NULL );
 		pthread_create( watchThread, NULL, watchCallback, this );
-		mesg = 0;
-		playerbitmap = 0;
-		kill = 0;
 
 	}
 

@@ -28,7 +28,8 @@ namespace Game
 		port{atoi(match[5])},
 		research{atoi(match[10])},
 		renaming{atoi(match[11])},
-		clientstart{atoi(match[12])}
+		clientstart{atoi(match[12])},
+		mods{mods}
 	{
 		this->mapName = (char*)malloc( strlen( map[0] ) + 1 );
 		strcpy( this->mapName, map[0] );
@@ -41,7 +42,9 @@ namespace Game
 		this->t[1] = atoi(match[7]);
 		this->t[2] = atoi(match[8]);
 		this->t[3] = atoi(match[9]);
-		this->mods = mods;
+		this->hostday = atoi(match[14]);
+		this->hosthour = atoi(match[15]);
+		this->hostint = atoi(match[16]);
 	}
 
 	char* Match::createConfStr( void )
@@ -49,8 +52,18 @@ namespace Game
 		char * str = (char*)calloc( 2048, sizeof( char ) );
 		if( this->clientstart == 0 )
 			sprintf( str, "--noclientstart " );
-		for( std::vector<Game::Mod*>::iterator it = this->mods->begin(); it != this->mods->end(); it++ ) {
-			sprintf( str + strlen( str ), "--enablemod %s ", (*it)->m_dmname );
+		if( !this->mods->empty() ) {
+			for( std::vector<Game::Mod*>::iterator it = this->mods->begin(); it != this->mods->end(); it++ )
+			{
+				if( (*it) != NULL ) {
+					sprintf( str + strlen( str ), "--enablemod %s ", (*it)->m_dmname );
+				}
+			}
+		}
+		if( this->hostint != 0 )
+			sprintf( str + strlen( str ), "--minutes %d ", this->hostint );
+		if( this->hosthour != 0 || this->hostday != 0 ) {
+			sprintf( str + strlen( str ), "--hosttime %d %d", this->hostday, this->hosthour );
 		}
 		sprintf( str + strlen( str ), "--renaming %d -d --statuspage debug.html --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%d\"", 
 			this->renaming,

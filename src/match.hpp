@@ -26,6 +26,9 @@ namespace Game
 		int research;
 		int renaming;
 		int clientstart;
+		int hostday;
+		int hosthour;
+		int hostint;
 		std::vector<Game::Mod*> * mods;
 		private:
 	};

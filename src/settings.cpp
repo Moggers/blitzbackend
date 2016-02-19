@@ -1,6 +1,7 @@
 #include "settings.hpp"
 #include <sys/stat.h>
 #include <unistd.h>
+#include "matchhandler.hpp"
 #include <libconfig.h>
 #include <stdlib.h>
 namespace Server
@@ -23,6 +24,7 @@ namespace Server
 
 		cf = (config_t*)calloc( 1, sizeof( config_t ) );
 		config_init( cf );
+
 
 		int canread = 1;
 		if( !config_read_file( cf, configfile ) ) {

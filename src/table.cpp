@@ -126,7 +126,8 @@ namespace SQL
 			return NULL;
 		}
 
-		std::vector<Game::Mod*> * returnvec = new std::vector<Game::Mod*>(0);
+		std::vector<Game::Mod*> * returnvec = new std::vector<Game::Mod*>();
+		std::vector<Game::Mod*>::iterator it = returnvec->begin();
 		while( MYSQL_ROW modidrow = mysql_fetch_row(modids) ) {
 			sprintf( query, "select dmname from mods where id=%s", modidrow[0] );
 			if( mysql_query( m_con, query ) ) {
@@ -136,7 +137,7 @@ namespace SQL
 			MYSQL_RES * modname = mysql_store_result( m_con );
 			MYSQL_ROW modnamerow = mysql_fetch_row( modname );
 			Game::Mod * mod = new Game::Mod( atoi(modidrow[0]), modnamerow[0] );
-			returnvec->push_back( mod );
+			returnvec->insert( it++, mod );
 			mysql_free_result( modname );
 		}
 		free( query );
