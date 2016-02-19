@@ -147,12 +147,13 @@ namespace Server
 					// Start it again and pretend nothing happened
 					// I'm going to hell
 					char * com = (char*)calloc( 512, sizeof( char ) );
-					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, tryGetPort(cmatch->port), cmatch->createConfStr() );
+					cmatch->port = tryGetPort( cmatch->port );
+					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, cmatch->port, cmatch->createConfStr() );
 					popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 					popen2( com, proc );
+					fprintf( stdout, "Restarted server on port %d", cmatch->port );
 					inst = new Server::MatchInstance( proc, cmatch, m_table );
 					m_matches.push_back( inst );
-					m_table->saveMatch( cmatch );
 				}
 				free( nations );
 
