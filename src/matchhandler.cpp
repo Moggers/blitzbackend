@@ -1,11 +1,14 @@
 #include <unistd.h>
 #include <sys/wait.h>
+#include <string.h>
 #include "mod.hpp"
 #include <signal.h>
 #include <iterator>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <algorithm>
@@ -39,6 +42,38 @@ namespace Server
 		if( port_check( port ) == 1 ) 
 			return port;
 		else return -1;
+	}
+
+	int MatchHandler::tryGetPort( int port )
+	{
+		struct addrinfo hints, *res;
+		int sockfd;
+
+		// first, load up address structs with getaddrinfo():
+
+		memset(&hints, 0, sizeof hints);
+		hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
+
+		char * w = (char*)calloc( 16, sizeof(char) );
+		sprintf( w, "%d", port );
+		getaddrinfo(NULL, w, &hints, &res);
+
+		sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+		if( bind( sockfd, res->ai_addr, res->ai_addrlen ) != 0 ) {
+			getaddrinfo(NULL, "0", &hints, &res);
+			bind( sockfd, res->ai_addr, res->ai_addrlen );
+			sockaddr_in sa;
+			socklen_t sa_len = sizeof( sa );
+			if( getsockname( sockfd, (sockaddr*)&sa, &sa_len ) == -1 ) {
+				return -1;
+			}
+			port = sa.sin_port;
+		}
+		close( sockfd );
+		return port;
 	}
 
 	int MatchHandler::blockUntilPortFree( int port )
@@ -112,15 +147,7 @@ namespace Server
 					// Start it again and pretend nothing happened
 					// I'm going to hell
 					char * com = (char*)calloc( 512, sizeof( char ) );
-					int port = getSpecificPort( cmatch->port );
-					if( port == -1 ) {
-						fprintf( stdout, "Port %d somehow still/already in use, ", cmatch->port );
-						cmatch->port = getPort();
-						fprintf( stdout, "assigning new port %d", cmatch->port );
-					} else {
-						fprintf( stdout, "Successfully regrabbed port %d\n", cmatch->port );
-					}
-					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, cmatch->port, cmatch->createConfStr() );
+					sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, tryGetPort(cmatch->port), cmatch->createConfStr() );
 					fprintf( stdout, "restarting\n" );
 					popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 					popen2( com, proc );

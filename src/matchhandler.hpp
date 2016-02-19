@@ -30,6 +30,8 @@ namespace Server
 		static int getPort( void );
 		// Request a specific port 
 		static int getSpecificPort( int port );
+		// Request a port, if it fails grab one at random
+		static int tryGetPort( int port );
 		// Request a port, block until it returns
 		static int blockUntilPortFree( int port );
 		// Database access for this handler
