@@ -80,14 +80,30 @@ int port_check( int portno )
 
 int get_port( void )
 {
-	int ii = PORT_MAX;
-	for( ii = PORT_MAX; ii > PORT_MIN; ii-- ) {
-		if( port_check( ii ) == 1 ) {
-			return ii;
-		}
+	struct addrinfo hints, *res;
+	int sockfd;
+
+	// first, load up address structs with getaddrinfo():
+
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
+
+	getaddrinfo(NULL, "0", &hints, &res);
+	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	int port = -1;
+
+	bind( sockfd, res->ai_addr, res->ai_addrlen );
+	sockaddr_in sa;
+	socklen_t sa_len = sizeof( sa );
+	if( getsockname( sockfd, (sockaddr*)&sa, &sa_len ) == -1 ) {
+		return -1;
 	}
-	
-	return -1;
+	port = sa.sin_port;
+	close( sockfd );
+	free( res );
+	return port;
 }
 int get_specific_port( int port )
 {

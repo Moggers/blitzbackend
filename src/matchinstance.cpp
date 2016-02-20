@@ -65,6 +65,7 @@ namespace Server
 			this->match->hostint = match->hostint;
 			this->restart();
 			m_table->saveMatch( match );
+			m_table->updateTimestamp( match );
 			return 1;
 		}
 		if( match->hostday != this->match->hostday || match->hosthour != this->match->hosthour ) {

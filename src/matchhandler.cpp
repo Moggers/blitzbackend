@@ -68,7 +68,10 @@ namespace Server
 				Server::MatchInstance * inst = *getMatchInstance(cmatch);
 				if( inst->watcher->mesg > 0 ) {
 					inst->match->status = (inst->watcher->mesg-40)/ 5 + 10;
-					if( inst->match->status == 10 ) inst->match->status = 3;
+					if( inst->match->status == 10 ) {
+						 inst->match->status = 3;
+						 m_table->updateTimestamp( inst->match );
+					}
 					inst->watcher->mesg = 0;
 				} else if( inst->watcher->mesg == -1 ) {
 					fprintf( stdout, "Match %s has either died or failed to start\n", cmatch->name );
@@ -140,8 +143,9 @@ namespace Server
 			Server::MatchInstance * inst = new MatchInstance( cmatch, m_table, 0 );
 			m_matches.push_back( inst );
 			fprintf( stdout, "Started server on port %d.\n", inst->match->port );
-			inst->match->status = 1;
+			inst->match->status = 3;
 			m_table->saveMatch( inst->match );
+			m_table->updateTimestamp( inst->match );
 		}
 		free( matches );
 	}

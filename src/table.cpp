@@ -38,10 +38,19 @@ namespace SQL
 	void Table::addTurn( Game::Match * match )
 	{
 		char * query = (char*)calloc( 128, sizeof( char ) );
-		if( sprintf( query, "insert into turns (match_id) values(%d);", match->id ) != 0 ) {
+		sprintf( query, "insert into turns (match_id,time) values(%d,UTC_TIMESTAMP);", match->id );
+		if( mysql_query( m_con, query ) != 0 ) {
 			fprintf( stdout, "Failed to insert turn\n" );
 		}
-		mysql_query( m_con, query );
+	}
+
+	void Table::updateTimestamp( Game::Match * match )
+	{
+		char * query = (char*)calloc( 128, sizeof( char ) );
+		sprintf( query, "update matches set lastturn= UTC_TIMESTAMP where id=%d;", match->id );
+		if( mysql_query( m_con, query ) != 0 ) {
+			fprintf( stdout, "Failed to update match timestamp\n" );
+		}
 	}
 
 	Game::Match ** Table::getAllMatches( void )
