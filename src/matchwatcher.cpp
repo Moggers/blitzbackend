@@ -58,6 +58,7 @@ namespace Server
 				pos = std::string::npos;
 				pos = recvMessage.find( "second" );
 				if( pos != std::string::npos ) {
+					fprintf( stdout, "Updating countdown\n" );
 					buff[pos - 1] = '\0';
 					int countdown = atoi(&buff[pos-3]);
 					if( countdown % 5 == 0 )
