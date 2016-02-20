@@ -35,6 +35,15 @@ namespace SQL
 		mysql_close( m_con );
 	}
 
+	void Table::addTurn( Game::Match * match )
+	{
+		char * query = (char*)calloc( 128, sizeof( char ) );
+		if( sprintf( query, "insert into turns (match_id) values(%d);", match->id ) != 0 ) {
+			fprintf( stdout, "Failed to insert turn\n" );
+		}
+		mysql_query( m_con, query );
+	}
+
 	Game::Match ** Table::getAllMatches( void )
 	{
 		if( mysql_query( m_con, "select * from matches" ) != 0 ) {
@@ -166,6 +175,9 @@ namespace SQL
 		sprintf( query, "delete from matchmods where match_id=%d", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to remove mods from match %d\n", sqlerrno );
+		sprintf( query, "delete from turns where match_id=%d", match->id );
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+			fprintf( stdout, "Warning! Failed to remove turns from match %d\n", sqlerrno );
 		sprintf( query, "delete from matches where id=%d", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to delete match %d at sql %d\n", match->id, sqlerrno );

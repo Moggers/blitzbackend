@@ -66,13 +66,19 @@ namespace Server
 				// Search for player join string
 				pos = std::string::npos;
 				pos = recvMessage.find( "Receiving god for " );
-				fflush( stdout );
 				if( pos != std::string::npos ) {
 					buff[pos+20] = '\0';
 					int nationid = atoi(&buff[pos+17]);
 					Game::Nation * nation = watcher->table->getNation( nationid );
 					watcher->table->addNationToMatch( watcher->match, nation );
 					fprintf( stdout, "Added nation %s to match %s(%d)\n", nation->name, watcher->match->name, watcher->match->id );
+				}
+				// Search for new turn
+				pos = std::string::npos;
+				pos = recvMessage.find( "putfatherland" );
+				if( pos != std::string::npos ) {
+					watcher->table->addTurn( watcher->match );
+					fprintf( stdout, "Turn rollover for %s\n", watcher->match->name );
 				}
 			}
 

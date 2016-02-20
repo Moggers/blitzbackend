@@ -22,6 +22,7 @@ namespace SQL
 		void deleteMatch(Game::Match * match );
 		void removeNationFromMatch( Game::Match * match, Game::Nation * nation );
 		void addNationToMatch( Game::Match * match, Game::Nation * nation );
+		void addTurn( Game::Match * match );
 		Game::Nation * getNation( int id );
 		Game::Nation ** getDeleteRequests( Game::Match * match );
 
