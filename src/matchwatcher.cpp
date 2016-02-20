@@ -76,7 +76,7 @@ namespace Server
 				}
 				// Search for new turn
 				pos = std::string::npos;
-				pos = recvMessage.find( "putfatherland" );
+				pos = recvMessage.find( "______ month" );
 				if( pos != std::string::npos) {
 					watcher->table->addTurn( watcher->match );
 					watcher->table->updateTimestamp( watcher->match );
