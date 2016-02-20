@@ -76,8 +76,8 @@ namespace Server
 				}
 				// Search for new turn
 				pos = std::string::npos;
-				pos = recvMessage.find( "putfatherland " );
-				if( pos != std::string::npos && recvMessage[0] == 'p' ) {
+				pos = recvMessage.find( "fatherland " );
+				if( pos != std::string::npos && recvMessage[0] == 'f' ) {
 					watcher->table->addTurn( watcher->match );
 					watcher->table->updateTimestamp( watcher->match );
 					fprintf( stdout, "Turn rollover for %s\n", watcher->match->name );
