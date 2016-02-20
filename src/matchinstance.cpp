@@ -97,5 +97,7 @@ namespace Server
 		popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 		popen2( com, proc );
 		this->process = proc;
+		this->watcher = new MatchWatcher( this->process, m_table, this->match );
+		this->watcher->port = this->match->port;
 	}
 }
