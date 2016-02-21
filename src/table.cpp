@@ -247,4 +247,14 @@ namespace SQL
 		return nations;
 	}
 
+	void Table::setTurnfileName( int nationid, char * name )
+	{
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "update nations set turn_name='%s' where id=%d;", name, nationid );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+			fprintf( stdout, "Failed to update nation turn name %d\n", sqlerrno );
+		else
+			fprintf( stdout, "Updated turn name %d is now %s\n", nationid, name );
+	}
 }

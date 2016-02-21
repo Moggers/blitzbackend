@@ -26,6 +26,7 @@ namespace SQL
 		void updateTimestamp( Game::Match * match );
 		Game::Nation * getNation( int id );
 		Game::Nation ** getDeleteRequests( Game::Match * match );
+		void setTurnfileName( int nationid, char * name );
 
 		private:
 		MYSQL * m_con;

@@ -15,6 +15,7 @@ namespace Server
 		Game::Match * match;
 		static void* watchCallback( void* arg );
 		int kill;
+		int lastn;
 
 		public:
 		int64_t playerbitmap;

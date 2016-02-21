@@ -1,4 +1,6 @@
 #include <string>
+#
+#include <string.h>
 #include "nation.hpp"
 #include "settings.hpp"
 #include <math.h>
@@ -18,6 +20,7 @@ namespace Server
 	{
 		mesg = 0;
 		playerbitmap = 0;
+		lastn = -1;
 		kill = 0;
 		watchThread = (pthread_t*)calloc( 1, sizeof( pthread_t ) );
 		pollproc = (popen2_t*)calloc( 1, sizeof( popen2_t) );
@@ -72,7 +75,24 @@ namespace Server
 					int nationid = atoi(&buff[pos+17]);
 					Game::Nation * nation = watcher->table->getNation( nationid );
 					watcher->table->addNationToMatch( watcher->match, nation );
+					watcher->lastn = nationid;
 					fprintf( stdout, "Added nation %s to match %s(%d)\n", nation->name, watcher->match->name, watcher->match->id );
+				}
+				// Search for nation 2h name
+				if( watcher->lastn != -1 ) {
+					fprintf( stdout, "checking for turn name\n" );
+					pos = std::string::npos;
+					char * search = (char*)calloc( 1024, sizeof( char ) );
+					sprintf( search, "saving as %s%s%d/", Server::Settings::savepath, watcher->match->name, watcher->match->id );
+					pos = recvMessage.find( search );
+					if( pos != std::string::npos ) {
+						char * name = &recvMessage[pos+strlen(search)];
+						recvMessage[recvMessage.find(".2h")] = '\0';
+						fprintf( stdout, "%s\n", name );
+						watcher->table->setTurnfileName( watcher->lastn, name );
+						watcher->lastn = -1;
+					}
+					free( search );
 				}
 				// Search for new turn
 				pos = std::string::npos;
