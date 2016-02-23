@@ -2,6 +2,7 @@
 #include <string>
 #include <regex>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 namespace Server
 {
@@ -9,12 +10,13 @@ namespace Server
 	{
 		std::ostringstream fname;
 		this->jsondir = jsondir;
-		fname << this->jsondir << turnN;
+		fname << this->jsondir << "/" << turnN << ".json";
 		this->filename = fname.str();
 		fileread = std::ifstream( fname.str() ); 
 		if( fileread.is_open() ) {
 			fileread >> root;
 		}
+		mkdir( this->jsondir.c_str(), 0755 );
 		cur_battle.provid = -1;
 		std::cout << "First (seen) turn " << turnN << " writing to " << filename << "\n";
 	}
@@ -22,7 +24,7 @@ namespace Server
 	void TurnParser::newTurn( int turnN )
 	{
 		std::ostringstream fname;
-		fname << this->jsondir << turnN;
+		fname << this->jsondir << "/" << turnN << ".json";
 		this->filename = fname.str();
 		fileread = std::ifstream( fname.str() ); 
 		if( fileread.is_open() ) {
@@ -63,15 +65,11 @@ namespace Server
 		return 1;
 	}
 
-	int TurnParser::changeTurn( int turn )
-	{
-		return 0;
-	}
-
 	void TurnParser::writeTurn( void )
 	{
-		std::ofstream writer(filename);
-		writer << root;
+		std::cout << "Writing turn\n";
+		std::ofstream writer(filename, std::ofstream::out);
+		writer << root << std::endl;
 		writer.close();
 	}
 }

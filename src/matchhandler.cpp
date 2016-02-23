@@ -87,7 +87,7 @@ namespace Server
 				if( nations[0] != NULL ) {
 					for( int ii = 0; nations[ii] != NULL; ii++ ) {
 						char * str= (char*)calloc( 512, sizeof( char ) );
-						sprintf( str, "%s/%s%d/%s.2h", Settings::savepath, cmatch->name, cmatch->id, nations[ii]->turnname );
+						sprintf( str, "%s/%s%lu/%s.2h", Settings::savepath, cmatch->name, cmatch->id, nations[ii]->turnname );
 						remove( str );
 						m_table->removeNationFromMatch( cmatch, nations[ii] );
 					}

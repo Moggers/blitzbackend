@@ -32,15 +32,16 @@ namespace SQL
 	}
 	Table::~Table( void )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		mysql_close( m_con );
 		mysql_library_end();
 	}
 
 	void Table::addTurn( Game::Match * match, int tn )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 128, sizeof( char ) );
-		sprintf( query, "insert into turns (match_id,tn,time) values(%d,%d,UTC_TIMESTAMP);", match->id, tn );
-		fprintf( stdout, query );
+		sprintf( query, "insert into turns (match_id,tn,time) values(%lu,%d,UTC_TIMESTAMP);", match->id, tn );
 		if( mysql_query( m_con, query ) != 0 ) {
 			fprintf( stdout, "Failed to insert turn\n" );
 		}
@@ -48,8 +49,9 @@ namespace SQL
 
 	void Table::updateTimestamp( Game::Match * match )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 128, sizeof( char ) );
-		sprintf( query, "update matches set lastturn=UTC_TIMESTAMP where id=%d;", match->id );
+		sprintf( query, "update matches set lastturn=UTC_TIMESTAMP where id=%lu;", match->id );
 		if( mysql_query( m_con, query ) != 0 ) {
 			fprintf( stdout, "Failed to update match timestamp\n" );
 		}
@@ -58,8 +60,9 @@ namespace SQL
 
 	int Table::getTurnNumber( Game::Match * match )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 512, sizeof( char ) );
-		sprintf( query, "select max(tn) from turns where match_id=%d", match->id );
+		sprintf( query, "select max(tn) from turns where match_id=%lu", match->id );
 		if( mysql_query( m_con, query ) != 0 )
 			fprintf( stdout, "Failed to retrieve turn count\n" );
 		MYSQL_RES * res = mysql_store_result( m_con );
@@ -68,7 +71,7 @@ namespace SQL
 			return 0;
 		}
 		MYSQL_ROW crow = mysql_fetch_row( res );
-		if( crow != NULL ) {
+		if( crow[0] != NULL ) {
 			int ret = atoi(crow[0]);
 			mysql_free_result( res );
 			free( query );
@@ -81,6 +84,7 @@ namespace SQL
 
 	Game::Match ** Table::getAllMatches( void )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		if( mysql_query( m_con, "select * from matches" ) != 0 ) {
 			return NULL;
 		}
@@ -112,6 +116,7 @@ namespace SQL
 
 	Game::Match ** Table::getMatchesByStatus( int count, ...  )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 256, sizeof( char ) );
 		sprintf( query, "select * from matches where status in (" );
 
@@ -164,6 +169,7 @@ namespace SQL
 
 	std::vector<Game::Mod*> * Table::getModsByMatch( int matchid )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 128, sizeof( char ) );
 		sprintf( query, "select mod_id from matchmods where match_id=%d;", matchid );
 		if( mysql_query( m_con, query ) ) {
@@ -177,7 +183,6 @@ namespace SQL
 		}
 
 		std::vector<Game::Mod*> * returnvec = new std::vector<Game::Mod*>();
-		std::vector<Game::Mod*>::iterator it = returnvec->begin();
 		while( MYSQL_ROW modidrow = mysql_fetch_row(modids) ) {
 			sprintf( query, "select dmname from mods where id=%s", modidrow[0] );
 			if( mysql_query( m_con, query ) ) {
@@ -187,7 +192,7 @@ namespace SQL
 			MYSQL_RES * modname = mysql_store_result( m_con );
 			MYSQL_ROW modnamerow = mysql_fetch_row( modname );
 			Game::Mod * mod = new Game::Mod( atoi(modidrow[0]), modnamerow[0] );
-			returnvec->insert( it++, mod );
+			returnvec->push_back( mod );
 			mysql_free_result( modname );
 		}
 		free( query );
@@ -197,8 +202,9 @@ namespace SQL
 
 	void Table::saveMatch( Game::Match * match )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "update matches set status=%d,port=%d where id=%d;", match->status, match->port, match->id );
+		sprintf( query, "update matches set status=%d,port=%d where id=%lu;", match->status, match->port, match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Warning! Failed to save match: %d\nSQL was %s\n", sqlerrno, query );
@@ -208,26 +214,28 @@ namespace SQL
 
 	void Table::deleteMatch( Game::Match * match )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "delete from matchnations where match_id=%d", match->id );
+		sprintf( query, "delete from matchnations where match_id=%lu", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to remove players from match %d\n", sqlerrno );
-		sprintf( query, "delete from matchmods where match_id=%d", match->id );
+		sprintf( query, "delete from matchmods where match_id=%lu", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to remove mods from match %d\n", sqlerrno );
-		sprintf( query, "delete from turns where match_id=%d", match->id );
+		sprintf( query, "delete from turns where match_id=%lu", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to remove turns from match %d\n", sqlerrno );
-		sprintf( query, "delete from matches where id=%d", match->id );
+		sprintf( query, "delete from matches where id=%lu", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to delete match %d at sql %d\n", match->id, sqlerrno );
+			fprintf( stdout, "Warning! Failed to delete match %lu at sql %d\n", match->id, sqlerrno );
 	}
 
 	void Table::removeNationFromMatch( Game::Match * match, Game::Nation * nation )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "delete from matchnations where match_id=%d AND nation_id=%d", match->id, nation->id );
+		sprintf( query, "delete from matchnations where match_id=%lu AND nation_id=%d", match->id, nation->id );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
 			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n", sqlerrno );
@@ -235,16 +243,18 @@ namespace SQL
 
 	void Table::addNationToMatch( Game::Match * match, Game::Nation * nation )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		removeNationFromMatch( match, nation );
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "insert into matchnations values (0, %d, %d, 0)", nation->id, match->id );
+		sprintf( query, "insert into matchnations values (0, %d, %lu, 0)", nation->id, match->id );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
-			fprintf( stdout, "Failed to add nation to match in database (%d,%d) %d\n", match->id, nation->id, sqlerrno );
+			fprintf( stdout, "Failed to add nation to match in database (%lu,%d) %d\n", match->id, nation->id, sqlerrno );
 	}
 
 	Game::Nation * Table::getNation( int id )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc(2048, sizeof( char ) );
 		sprintf( query, "select * from nations where id=%d", id );
 		int sqlerrno;
@@ -260,8 +270,9 @@ namespace SQL
 
 	Game::Nation ** Table::getDeleteRequests( Game::Match * match )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select nation_id from matchnations where match_id=%d AND markdelete=1", match->id );
+		sprintf( query, "select nation_id from matchnations where match_id=%lu AND markdelete=1", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Failed to retrieve nation delete requests: %d\n", sqlerrno );
@@ -282,6 +293,7 @@ namespace SQL
 
 	void Table::setTurnfileName( int nationid, const char * name )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		sprintf( query, "update nations set turn_name='%s' where id=%d;", name, nationid );
 		int sqlerrno;

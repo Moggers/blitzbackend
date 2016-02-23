@@ -30,7 +30,7 @@ namespace Server
 	void* MatchWatcher::watchCallback( void* arg )
 	{
 		MatchWatcher * watcher = (MatchWatcher*)arg;
-		char * buff = (char*)calloc( 2048, sizeof( char ) );
+		char * buff = (char*)calloc( 4096, sizeof( char ) );
 		char * line = NULL;
 		char * newline = 0;
 		int nbytes;
@@ -40,7 +40,7 @@ namespace Server
 		std::smatch match;
 
 		char * matchdir = (char*)calloc( 1024, sizeof(char) );
-		sprintf( matchdir, "%s/%d/", Server::Settings::jsondir, watcher->match->id );
+		sprintf( matchdir, "%s/%lu/", Server::Settings::jsondir, watcher->match->id );
 		std::ostringstream stream;
 		stream << Server::Settings::jsondir << watcher->match->id << "/";
 		Server::TurnParser turnParser(matchdir, watcher->table->getTurnNumber( watcher->match ));
@@ -48,21 +48,20 @@ namespace Server
 
 		fcntl(watcher->proc->from_child, F_SETFL, flags | O_NONBLOCK);
 		while( !watcher->kill ) { // If we're not meant to close
-			fprintf( stdout, "Locking mutex in watcher\n" );
-			std::lock_guard<std::mutex> guard(watcher->lock);
-			fprintf( stdout, "Done\n" );
 			if( ::kill( watcher->proc->child_pid, 0 ) == -1 ) { // Die if the child died
 				watcher->mesg = STATUS_FAILURE;
 				free( buff );
 				return NULL;
 			}
 			if( stillreading  == 0 ) { // Are we done reading? (Was the last attempt to grab a line incomplete?)
-				nbytes = read( watcher->proc->from_child, buff+strlen(buff), 2040 ); // Grab the new data (insert it into strlen(buff) incase there's already half a line left)
+				nbytes = read( watcher->proc->from_child, buff+strlen(buff), 4090 ); // Grab the new data (insert it into strlen(buff) incase there's already half a line left)
 				if( nbytes == -1 ) {
+					usleep( 500000 );
 					continue;
 				}
 				line = buff; // Reset the line
 			}
+			std::lock_guard<std::mutex> guard(watcher->lock);
 			newline = strchr( line, '\n' ); // Find the end of line
 			if( newline == NULL ) { // If we couldn't find a full line copy the half finished line back to the buffer and mark the data as done
 				strcpy( buff, line-1 );
@@ -89,11 +88,11 @@ namespace Server
 				}
 				// Search for player join string
 				if( std::regex_match( recvMessage, match, std::regex( ".*Receiving god for ([0-9]+).*" ) ) ) {
-					int nationid = atoi(match[0].str().c_str());
+					int nationid = atoi(match[1].str().c_str());
 					Game::Nation * nation = watcher->table->getNation( nationid );
 					watcher->table->addNationToMatch( watcher->match, nation );
 					watcher->lastn = nationid;
-					fprintf( stdout, "Added nation %s to match %s(%d)\n", nation->name, watcher->match->name, watcher->match->id );
+					fprintf( stdout, "Added nation %s to match %s(%lu)\n", nation->name, watcher->match->name, watcher->match->id );
 					free( nation );
 					continue;
 				}
@@ -136,10 +135,8 @@ namespace Server
 	void MatchWatcher::destroyWatcher( void )
 	{ 
 		{
-			fprintf( stdout, "Locking mutex in destroy\n" );
 			std::lock_guard<std::mutex> guard(this->lock);
 			this->kill = 1;
-			fprintf( stdout, "Done\n" );
 		}
 		fprintf( stdout, "Joining\n" );
 		this->watchThread.join();

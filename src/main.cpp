@@ -11,7 +11,6 @@
 #include "turnparser.hpp"
 int main( int argc, char ** argv )
 {
-
 	char * confpath = (char*)calloc( 512, sizeof( char ) );
 	sprintf( confpath, "%s/.config/blitzbackend/", getenv( "HOME" ) );
 	Server::Settings::loadSettings( confpath );

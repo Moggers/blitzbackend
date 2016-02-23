@@ -7,6 +7,7 @@
 #include "match.hpp"
 #include <stdarg.h>
 #include "mod.hpp"
+#include <mutex>
 #include <vector>
 namespace SQL
 {
@@ -31,5 +32,6 @@ namespace SQL
 
 		private:
 		MYSQL * m_con;
+		std::recursive_mutex tablelock;
 	};
 }

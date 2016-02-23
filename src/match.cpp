@@ -20,16 +20,15 @@ namespace Game
 		this->t[3] = t4;
 	}
 
-	Match::Match( MYSQL_ROW match, MYSQL_ROW map, std::vector<Game::Mod*> * mods ) :
-		id{atol(match[0])},
+	Match::Match( const MYSQL_ROW match, const MYSQL_ROW map, std::vector<Game::Mod*> * mods ) :
+		id{strtoul(match[0], NULL, 10 )},
 		mapid{atoi(match[1])},
 		status{atoi(match[4])},
 		age{atoi(match[2])},
 		port{atoi(match[5])},
 		research{atoi(match[10])},
 		renaming{atoi(match[11])},
-		clientstart{atoi(match[12])},
-		mods{mods}
+		clientstart{atoi(match[12])}
 	{
 		this->mapName = (char*)malloc( strlen( map[0] ) + 1 );
 		strcpy( this->mapName, map[0] );
@@ -45,6 +44,7 @@ namespace Game
 		this->hostday = atoi(match[14]);
 		this->hosthour = atoi(match[15]);
 		this->hostint = atoi(match[16]);
+		this->mods = new std::vector<Game::Mod*>(*mods);
 	}
 
 	Match::Match( Game::Match * match ) :
@@ -73,9 +73,9 @@ namespace Game
 		this->t[2] = match->t[2];
 		this->t[3] = match->t[3];
 
-		this->mods = new std::vector<Mod*>(match->mods->size());
-		for( std::vector<Game::Mod*>::iterator it = match->mods->begin(); it != match->mods->end(); it++ ) {
-			this->mods->push_back( new Mod( *it ) );
+		this->mods = new std::vector<Mod*>();
+		for( auto mod : *match->mods ) {
+			this->mods->push_back( new Mod( mod ) );
 		}
 	}
 
@@ -106,7 +106,7 @@ namespace Game
 		if( this->hosthour != 0 || this->hostday != 0 ) {
 			sprintf( str + strlen( str ), "--hosttime %d %d", this->hostday, this->hosthour );
 		}
-		sprintf( str + strlen( str ), "--renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%d\"", 
+		sprintf( str + strlen( str ), "--renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
 			this->renaming,
 			this->research,
 			this->age, 

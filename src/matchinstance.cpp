@@ -34,11 +34,9 @@ namespace Server
 		sprintf( com, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, this->match->mapid, this->match->imgName, Server::Settings::mappath_save );
 		system( com );
 		// and the mods
-		if( !this->match->mods->empty() ){
-			for( std::vector<Game::Mod*>::iterator it = this->match->mods->begin(); it != this->match->mods->end(); it++ ) {
-				sprintf( com, "rsync -tr \"%s/%d/\" \"%s\"", Server::Settings::modpath_load, (*it)->m_id, Server::Settings::modpath_save );
-				system( com );
-			}
+		for( auto mod : *(this->match->mods) ) {
+			sprintf( com, "rsync -tr \"%s/%d/\" \"%s\"", Server::Settings::modpath_load, mod->m_id, Server::Settings::modpath_save );
+			system( com );
 		}
 		// Create the dom4 exe string
 		sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, this->match->port, confstr );
