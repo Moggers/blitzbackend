@@ -43,9 +43,10 @@ namespace Server
 	{
 		fprintf( stdout, "Shutting down all servers\n" );
 		for( std::vector<Server::MatchInstance*>::iterator iter = WhyDoIHaveToDoThis->m_matches.begin(); iter != WhyDoIHaveToDoThis->m_matches.end(); iter++ ) {
-			(*iter)->shutdown();
 			fprintf( stdout, "Shutting down %s\n", (*iter)->match->name );
+			(*iter)->shutdown();
 		}
+		Server::Settings::destroy();
 		exit( 1 );
 	}
 
@@ -107,6 +108,10 @@ namespace Server
 			inst->match->status = 1;
 			m_table->saveMatch( inst->match );
 		}
+		ii = 0;
+		Game::Match * ptr;
+		while(( ptr = matches[ii++])  != NULL )
+			delete( ptr );
 		free( matches );
 	}
 
@@ -163,9 +168,9 @@ namespace Server
 			std::vector<Server::MatchInstance*>::iterator cimatchi = getMatchInstance( cmatch );
 			Server::MatchInstance * cimatch = NULL;
 			if( cimatchi  == m_matches.end() ) {
-				// No need to shutd the match down
-				fprintf( stdout, "Killing server process\n" );
+				// No need to shut the match down
 			} else { // Shut the match down
+				fprintf( stdout, "Killing server process\n" );
 				(*cimatchi)->shutdown();
 				m_matches.erase( cimatchi );
 			}

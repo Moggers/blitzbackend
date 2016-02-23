@@ -21,8 +21,8 @@ int popen2(const char *cmdline,  popen2_t *childinfo) {
     if(pipe(pipe_stdin)) return -1;
     if(pipe(pipe_stdout)) return -1;
 
-    printf("pipe_stdin[0] = %d, pipe_stdin[1] = %d\n", pipe_stdin[0], pipe_stdin[1]);
-    printf("pipe_stdout[0] = %d, pipe_stdout[1] = %d\n", pipe_stdout[0], pipe_stdout[1]);
+    //printf("pipe_stdin[0] = %d, pipe_stdin[1] = %d\n", pipe_stdin[0], pipe_stdin[1]);
+    //printf("pipe_stdout[0] = %d, pipe_stdout[1] = %d\n", pipe_stdout[0], pipe_stdout[1]);
 
     p = fork();
     if(p < 0) return p; /* Fork failed */
@@ -131,17 +131,20 @@ int try_get_port( int port )
 	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
 	if( bind( sockfd, res->ai_addr, res->ai_addrlen ) != 0 ) {
+		freeaddrinfo( res );
 		getaddrinfo(NULL, "0", &hints, &res);
 		bind( sockfd, res->ai_addr, res->ai_addrlen );
 		sockaddr_in sa;
 		socklen_t sa_len = sizeof( sa );
 		if( getsockname( sockfd, (sockaddr*)&sa, &sa_len ) == -1 ) {
+			freeaddrinfo( res );
+			free( w );
 			return -1;
 		}
 		port = sa.sin_port;
 	}
 	close( sockfd );
 	free( w );
-	free( res );
+	freeaddrinfo( res );
 	return port;
 }

@@ -33,12 +33,14 @@ namespace SQL
 	Table::~Table( void )
 	{
 		mysql_close( m_con );
+		mysql_library_end();
 	}
 
-	void Table::addTurn( Game::Match * match )
+	void Table::addTurn( Game::Match * match, int tn )
 	{
 		char * query = (char*)calloc( 128, sizeof( char ) );
-		sprintf( query, "insert into turns (match_id,time) values(%d,UTC_TIMESTAMP);", match->id );
+		sprintf( query, "insert into turns (match_id,tn,time) values(%d,%d,UTC_TIMESTAMP);", match->id, tn );
+		fprintf( stdout, query );
 		if( mysql_query( m_con, query ) != 0 ) {
 			fprintf( stdout, "Failed to insert turn\n" );
 		}
@@ -47,10 +49,34 @@ namespace SQL
 	void Table::updateTimestamp( Game::Match * match )
 	{
 		char * query = (char*)calloc( 128, sizeof( char ) );
-		sprintf( query, "update matches set lastturn= UTC_TIMESTAMP where id=%d;", match->id );
+		sprintf( query, "update matches set lastturn=UTC_TIMESTAMP where id=%d;", match->id );
 		if( mysql_query( m_con, query ) != 0 ) {
 			fprintf( stdout, "Failed to update match timestamp\n" );
 		}
+		free( query );
+	}
+
+	int Table::getTurnNumber( Game::Match * match )
+	{
+		char * query = (char*)calloc( 512, sizeof( char ) );
+		sprintf( query, "select max(tn) from turns where match_id=%d", match->id );
+		if( mysql_query( m_con, query ) != 0 )
+			fprintf( stdout, "Failed to retrieve turn count\n" );
+		MYSQL_RES * res = mysql_store_result( m_con );
+		if( res == NULL ) {
+			free( query );
+			return 0;
+		}
+		MYSQL_ROW crow = mysql_fetch_row( res );
+		if( crow != NULL ) {
+			int ret = atoi(crow[0]);
+			mysql_free_result( res );
+			free( query );
+			return ret;
+		}
+		mysql_free_result( res );
+		free( query );
+		return 0;
 	}
 
 	Game::Match ** Table::getAllMatches( void )
@@ -99,10 +125,12 @@ namespace SQL
 		sprintf( query + strlen( query ) - 1, ");" );
 
 		if( mysql_query( m_con, query ) != 0 ) {
+			free( query );
 			return NULL;
 		}
 		MYSQL_RES * res = mysql_store_result( m_con );
 		if( res == NULL ) {
+			free( query );
 			return NULL;
 		}
 		free( query );
@@ -113,11 +141,15 @@ namespace SQL
 		while( MYSQL_ROW row = mysql_fetch_row( res ) ) {
 			char * query = (char*)calloc( 128, sizeof( char ) );
 			sprintf( query, "select mappath,imagepath from maps where id=%s", row[1] );
-			if( mysql_query( m_con, query ) )
+			if( mysql_query( m_con, query ) ) {
+				free( query );
 				return NULL;
+			}
 			MYSQL_RES * mappath = mysql_store_result( m_con );
-			if ( mappath == NULL )
+			if ( mappath == NULL ) {
+				free( query );
 				return NULL;
+			}
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
 			std::vector<Game::Mod*> * mods = getModsByMatch( atoi(row[0]) );
@@ -169,7 +201,7 @@ namespace SQL
 		sprintf( query, "update matches set status=%d,port=%d where id=%d;", match->status, match->port, match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
-			fprintf( stdout, "Warning! Failed to save data back to sql server: %d\n", sqlerrno );
+			fprintf( stdout, "Warning! Failed to save match: %d\nSQL was %s\n", sqlerrno, query );
 		}
 		free( query );
 	}
@@ -244,10 +276,11 @@ namespace SQL
 			i++;
 		}
 		mysql_free_result( nationstuff );
+		free( query );
 		return nations;
 	}
 
-	void Table::setTurnfileName( int nationid, char * name )
+	void Table::setTurnfileName( int nationid, const char * name )
 	{
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		sprintf( query, "update nations set turn_name='%s' where id=%d;", name, nationid );

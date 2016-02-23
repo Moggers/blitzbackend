@@ -5,7 +5,7 @@
 
 namespace Game
 {
-	Match::Match( int id, int mapid, char * mapname, char * imgname, int age, char * name, int status, int port, int t1, int t2, int t3, int t4, int research, int renaming ) : id{id}, mapid{mapid}, status{status}, age{age}, port{port}, research{research}, renaming{renaming}
+	Match::Match( unsigned long id, int mapid, char * mapname, char * imgname, int age, char * name, int status, int port, int t1, int t2, int t3, int t4, int research, int renaming ) : id{id}, mapid{mapid}, status{status}, age{age}, port{port}, research{research}, renaming{renaming}
 	{
 		this->mapName = (char*)malloc( strlen( mapname ) );
 		strcpy( this->mapName, mapname );
@@ -21,7 +21,7 @@ namespace Game
 	}
 
 	Match::Match( MYSQL_ROW match, MYSQL_ROW map, std::vector<Game::Mod*> * mods ) :
-		id{atoi(match[0])},
+		id{atol(match[0])},
 		mapid{atoi(match[1])},
 		status{atoi(match[4])},
 		age{atoi(match[2])},
@@ -47,6 +47,47 @@ namespace Game
 		this->hostint = atoi(match[16]);
 	}
 
+	Match::Match( Game::Match * match ) :
+	id{match->id},
+	mapid{match->mapid},
+	status{match->status},
+	age{match->age},
+	port{match->port},
+	research{match->research},
+	renaming{match->renaming},
+	clientstart{match->clientstart},
+	hostday{match->hostday},
+	hosthour{match->hosthour},
+	hostint{match->hostint}
+	{
+		this->mapName = (char*)calloc( 1024, sizeof( char ) );
+		this->imgName = (char*)calloc( 1024, sizeof( char ) );
+		this->name = (char*)calloc( 1024, sizeof( char ) );
+		this->t = (int*)calloc( 4, sizeof( int ) );
+
+		strcpy( this->mapName, match->mapName );
+		strcpy( this->imgName, match->imgName );
+		strcpy( this->name, match->name );
+		this->t[0] = match->t[0];
+		this->t[1] = match->t[1];
+		this->t[2] = match->t[2];
+		this->t[3] = match->t[3];
+
+		this->mods = new std::vector<Mod*>(match->mods->size());
+		for( std::vector<Game::Mod*>::iterator it = match->mods->begin(); it != match->mods->end(); it++ ) {
+			this->mods->push_back( new Mod( *it ) );
+		}
+	}
+
+	Match::~Match( void )
+	{
+		free( this->mapName );
+		free( this->imgName );
+		free( this->name );
+		free( this->t );
+		delete( this->mods );
+	}
+
 	char* Match::createConfStr( void )
 	{
 		char * str = (char*)calloc( 2048, sizeof( char ) );
@@ -65,7 +106,7 @@ namespace Game
 		if( this->hosthour != 0 || this->hostday != 0 ) {
 			sprintf( str + strlen( str ), "--hosttime %d %d", this->hostday, this->hosthour );
 		}
-		sprintf( str + strlen( str ), "--renaming %d -d --statuspage debug.html --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%d\"", 
+		sprintf( str + strlen( str ), "--renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%d\"", 
 			this->renaming,
 			this->research,
 			this->age, 

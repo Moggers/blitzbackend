@@ -2,10 +2,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "matchhandler.hpp"
-#include <libconfig.h>
 #include <stdlib.h>
-namespace Server
-{
+namespace Server {
 	const char * Settings::mappath_save;
 	const char * Settings::mappath_load;
 	const char * Settings::modpath_save;
@@ -15,11 +13,13 @@ namespace Server
 	const char * Settings::dbuser;
 	const char * Settings::dbpass;
 	const char * Settings::dbname;
+	const char * Settings::jsondir;
+	config_t * Settings::cf;
 	int Settings::loadSettings( const char * configpath )
 	{
 		char * configfile = (char*)calloc( 256, sizeof( char* ));
 		sprintf( configfile,  "%sconfig.cfg", configpath );
-		config_t cfg, * cf = NULL;
+		cf = NULL;
 		const config_setting_t *retries;
 
 		cf = (config_t*)calloc( 1, sizeof( config_t ) );
@@ -117,11 +117,24 @@ namespace Server
 			config_setting_set_string( config_lookup( cf, "dbname"), dbname );
 		}
 
+		if( canread && config_lookup_string( cf, "jsondir", &jsondir ) )
+			fprintf( stdout, "Found jsondir: %s\n", jsondir );
+		else {
+			fprintf( stdout, "Failed to find database name. Please tell me what it is.\n" );
+			jsondir = (const char *)calloc( 512, sizeof( char ) );
+			fscanf( stdin, "%s", (char*)jsondir );
+			config_setting_set_string( config_lookup( cf, "jsondir"), jsondir );
+		}
+
 		if( config_write_file( cf, configfile ) == CONFIG_FALSE ) {
 			fprintf( stdout, "Failed to write config\n" );
 		}
-		free( cf );
 		free( configfile );
 		return 0;
+	}
+
+	void Settings::destroy( void )
+	{
+		config_destroy( Settings::cf );
 	}
 }

@@ -1,7 +1,8 @@
 #include "util.hpp"
 #include "table.hpp"
 #include <stdint.h>
-#include <pthread.h>
+#include <thread>
+#include <mutex>
 namespace Server
 {
 	class MatchWatcher
@@ -9,13 +10,14 @@ namespace Server
 		private:
 		popen2_t * proc;
 		popen2_t * pollproc;
-		pthread_t * watchThread;
-		pthread_mutex_t * lock;
+		std::thread watchThread;
+		std::mutex lock;
 		SQL::Table * table;
 		Game::Match * match;
 		static void* watchCallback( void* arg );
 		int kill;
 		int lastn;
+		int currentturn;
 
 		public:
 		int64_t playerbitmap;

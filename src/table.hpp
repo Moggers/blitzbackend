@@ -22,11 +22,12 @@ namespace SQL
 		void deleteMatch(Game::Match * match );
 		void removeNationFromMatch( Game::Match * match, Game::Nation * nation );
 		void addNationToMatch( Game::Match * match, Game::Nation * nation );
-		void addTurn( Game::Match * match );
+		void addTurn( Game::Match * match, int tn );
 		void updateTimestamp( Game::Match * match );
+		int getTurnNumber( Game::Match * match );
 		Game::Nation * getNation( int id );
 		Game::Nation ** getDeleteRequests( Game::Match * match );
-		void setTurnfileName( int nationid, char * name );
+		void setTurnfileName( int nationid, const char * name );
 
 		private:
 		MYSQL * m_con;

@@ -1,3 +1,4 @@
+#include <libconfig.h>
 namespace Server
 {
 	class Settings
@@ -12,6 +13,10 @@ namespace Server
 		static const char * dbuser;
 		static const char * dbpass;
 		static const char * dbname;
+		static const char * jsondir;
 		static int loadSettings( const char * configpath );
+		static void destroy( void );
+		private:
+		static config_t * cf;
 	};
 }

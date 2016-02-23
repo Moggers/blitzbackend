@@ -1,5 +1,6 @@
 #include <string>
-#
+#include <regex>
+#include "turnparser.hpp"
 #include <string.h>
 #include "nation.hpp"
 #include "settings.hpp"
@@ -22,97 +23,126 @@ namespace Server
 		playerbitmap = 0;
 		lastn = -1;
 		kill = 0;
-		watchThread = (pthread_t*)calloc( 1, sizeof( pthread_t ) );
 		pollproc = (popen2_t*)calloc( 1, sizeof( popen2_t) );
-		lock = (pthread_mutex_t*)calloc( 1, sizeof( pthread_mutex_t ) );
-		pthread_mutex_init( lock, NULL );
-		pthread_create( watchThread, NULL, watchCallback, this );
-
+		watchThread = std::thread( watchCallback, this );
 	}
 
 	void* MatchWatcher::watchCallback( void* arg )
 	{
 		MatchWatcher * watcher = (MatchWatcher*)arg;
-		char * buff = (char*)calloc( 1024, sizeof( char ) );
+		char * buff = (char*)calloc( 2048, sizeof( char ) );
+		char * line = NULL;
+		char * newline = 0;
 		int nbytes;
 		int flags = fcntl(watcher->proc->from_child, F_GETFL, 0);
+		int stillreading = 0;
+		int turn;
+		std::smatch match;
+
+		char * matchdir = (char*)calloc( 1024, sizeof(char) );
+		sprintf( matchdir, "%s/%d/", Server::Settings::jsondir, watcher->match->id );
+		std::ostringstream stream;
+		stream << Server::Settings::jsondir << watcher->match->id << "/";
+		Server::TurnParser turnParser(matchdir, watcher->table->getTurnNumber( watcher->match ));
+		free( matchdir );
+
 		fcntl(watcher->proc->from_child, F_SETFL, flags | O_NONBLOCK);
-		while( !watcher->kill ) {
-			// Check if the child is even running, if it's not, send back a failure message and exit
-			if( ::kill( watcher->proc->child_pid, 0 ) == -1 ) {
+		while( !watcher->kill ) { // If we're not meant to close
+			fprintf( stdout, "Locking mutex in watcher\n" );
+			std::lock_guard<std::mutex> guard(watcher->lock);
+			fprintf( stdout, "Done\n" );
+			if( ::kill( watcher->proc->child_pid, 0 ) == -1 ) { // Die if the child died
 				watcher->mesg = STATUS_FAILURE;
+				free( buff );
 				return NULL;
 			}
-
-			nbytes = read( watcher->proc->from_child, buff, 1024 ); // Pull any data from the pipe to the server
-			pthread_mutex_lock( watcher->lock ); // Lock the mutex, we're doing Serious Shit now
-			if( nbytes == -1 ) {
+			if( stillreading  == 0 ) { // Are we done reading? (Was the last attempt to grab a line incomplete?)
+				nbytes = read( watcher->proc->from_child, buff+strlen(buff), 2040 ); // Grab the new data (insert it into strlen(buff) incase there's already half a line left)
+				if( nbytes == -1 ) {
+					continue;
+				}
+				line = buff; // Reset the line
+			}
+			newline = strchr( line, '\n' ); // Find the end of line
+			if( newline == NULL ) { // If we couldn't find a full line copy the half finished line back to the buffer and mark the data as done
+				strcpy( buff, line-1 );
+				stillreading = 0; 
 			} else {
-				size_t pos = 0;
+				stillreading = 1;
+				newline[0] = '\0'; // Mark the end of the line
+
+				std::string recvMessage( line );
+				turnParser.parseLine( recvMessage );
 				// Search for failure string
-				pos = std::string::npos;
-				std::string recvMessage = std::string( buff );
-				pos = recvMessage.find( "nick fel" );
-				if( pos != std::string::npos ) {
+				if( std::regex_match( recvMessage, match, std::regex( ".*nick fel.*" ) ) ) {
 					watcher->mesg = STATUS_FAILURE;
+					free( buff );
 					return NULL;
 				}
 				// Search for start string
-				pos = std::string::npos;
-				pos = recvMessage.find( "second" );
-				if( pos != std::string::npos ) {
+				if( std::regex_match( recvMessage, match, std::regex( ".*([0-9]+) seconds.*" ) ) ) {
 					fprintf( stdout, "Updating countdown\n" );
-					buff[pos - 1] = '\0';
-					int countdown = atoi(&buff[pos-3]);
+					int countdown = atoi(match[1].str().c_str());
 					if( countdown % 5 == 0 )
 						watcher->mesg = 40 + countdown; 
+					continue;
 				}
 				// Search for player join string
-				pos = std::string::npos;
-				pos = recvMessage.find( "Receiving god for " );
-				if( pos != std::string::npos ) {
-					buff[pos+20] = '\0';
-					int nationid = atoi(&buff[pos+17]);
+				if( std::regex_match( recvMessage, match, std::regex( ".*Receiving god for ([0-9]+).*" ) ) ) {
+					int nationid = atoi(match[0].str().c_str());
 					Game::Nation * nation = watcher->table->getNation( nationid );
 					watcher->table->addNationToMatch( watcher->match, nation );
 					watcher->lastn = nationid;
 					fprintf( stdout, "Added nation %s to match %s(%d)\n", nation->name, watcher->match->name, watcher->match->id );
+					free( nation );
+					continue;
 				}
-				// Search for nation 2h name
+				// Search for nation 2h name (but only if we know a nation just joined)
 				if( watcher->lastn != -1 ) {
-					fprintf( stdout, "checking for turn name\n" );
-					pos = std::string::npos;
-					char * search = (char*)calloc( 1024, sizeof( char ) );
-					sprintf( search, "saving as %s%s%d/", Server::Settings::savepath, watcher->match->name, watcher->match->id );
-					pos = recvMessage.find( search );
-					if( pos != std::string::npos ) {
-						char * name = &recvMessage[pos+strlen(search)];
-						recvMessage[recvMessage.find(".2h")] = '\0';
+					if( std::regex_match( recvMessage, match, std::regex( R"(.*saving as \/(.*\/)(.*).2h.*)"))) {
+						const char * name = match[2].str().c_str();
 						fprintf( stdout, "%s\n", name );
 						watcher->table->setTurnfileName( watcher->lastn, name );
 						watcher->lastn = -1;
+						continue;
 					}
-					free( search );
+
+				}
+				// Check for a turn number
+				if( std::regex_match( recvMessage, match, std::regex(R"(^fatherturn ([0-9]+).*)"))) {
+					watcher->currentturn = atoi(match[1].str().c_str());
+					continue;
 				}
 				// Search for new turn
-				pos = std::string::npos;
-				pos = recvMessage.find( "putfatherland" );
-				if( pos != std::string::npos) {
-					watcher->table->addTurn( watcher->match );
+				if( std::regex_match( recvMessage, match, std::regex(R"(^_+ month +([0-9]+) _+.*)"))) {
+					watcher->table->addTurn( watcher->match, watcher->currentturn+1 );
 					watcher->table->updateTimestamp( watcher->match );
-					fprintf( stdout, "Turn rollover for %s\n", watcher->match->name );
+					fprintf( stdout, "Turn rollover for %s:%d\n", watcher->match->name, watcher->currentturn );
+					turnParser.writeTurn();
+					turnParser.newTurn( watcher->currentturn+1 );
+					continue;
 				}
-			}
 
-			pthread_mutex_unlock( watcher->lock );
+				// Find the next line
+				line = newline+1;
+				
+			}
+			// Unlock the mutex and prepare for another run
 		}
+		free( buff );
 		return NULL;
 	}
 
 	void MatchWatcher::destroyWatcher( void )
 	{ 
-		pthread_mutex_lock( lock );
-		this->kill = 1;
-		pthread_mutex_unlock( lock );
+		{
+			fprintf( stdout, "Locking mutex in destroy\n" );
+			std::lock_guard<std::mutex> guard(this->lock);
+			this->kill = 1;
+			fprintf( stdout, "Done\n" );
+		}
+		fprintf( stdout, "Joining\n" );
+		this->watchThread.join();
+		fprintf( stdout, "Done\n" );
 	}
 }

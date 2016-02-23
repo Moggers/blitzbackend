@@ -20,8 +20,7 @@ namespace Server
 		// Allocate command buffer 
 		char * com = (char*)calloc( 512, sizeof( char ) );
 		// Create match
-		this->match = (Game::Match*)calloc( 1, sizeof( Game::Match ) );
-		memcpy( this->match, match, sizeof( Game::Match ) );
+		this->match = new Game::Match( match );
 		// Retrieve config string
 		char * confstr = match->createConfStr();
 		// Retrieve port
@@ -80,7 +79,9 @@ namespace Server
 
 	int MatchInstance::shutdown( void )
 	{
+		fprintf( stdout, "Destroying watcher\n" );
 		this->watcher->destroyWatcher();
+		fprintf( stdout, "Done\n" );
 		int retcode = kill( process->child_pid, SIGTERM );
 		waitpid( process->child_pid, NULL, 0 );
 		return retcode;

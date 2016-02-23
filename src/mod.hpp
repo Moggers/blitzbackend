@@ -8,5 +8,6 @@ namespace Game
 		int m_id;
 		char * m_dmname;
 		Mod( int id, char * dmname );
+		Mod( Game::Mod * mod );
 	};
 }
