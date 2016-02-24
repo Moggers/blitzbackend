@@ -212,6 +212,35 @@ namespace SQL
 		free( query );
 	}
 
+	void Table::updateMatchSettings( Game::Match * match )
+	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, 
+			"update matches set tone=%d,ttwo=%d,tthree=%d,\
+			points=%d,map_id=%d,research_diff=%d,renaming=%d,\
+			clientstart=%d where id=%lu;", 
+			match->t[0], match->t[1], match->t[2], match->t[3], match->mapid, match->research, match->renaming, match->clientstart, match->id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Warning! Failed to save match: %d\nSQL was %s\n", sqlerrno, query );
+		}
+		free( query );
+	}
+
+	void Table::markRestarted( Game::Match * match )
+	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query,  "update matches set needsrestart=0 where id=%d", match->id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Failed to notify db of match restart %d\nSQL was %s\n", sqlerrno, query );
+		}
+		free( query );
+	}
+
+
 	void Table::deleteMatch( Game::Match * match )
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);

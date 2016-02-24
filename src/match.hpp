@@ -17,6 +17,7 @@ namespace Game
 		Match() {};
 		~Match( void );
 		char* createConfStr( void );
+		void update( Game::Match * match );
 		unsigned long id;
 		int mapid;
 		char * mapName;
@@ -32,6 +33,7 @@ namespace Game
 		int hostday;
 		int hosthour;
 		int hostint;
+		int needsrestart;
 		std::vector<Game::Mod*> * mods;
 		private:
 	};

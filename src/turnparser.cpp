@@ -57,7 +57,7 @@ namespace Server
 		}
 		if( cur_battle.provid != -1 ) {
 			if( std::regex_match( sl, smatch, std::regex(R"(^_{5}The winner is ([0-9]+)_{7}.*)"))) {
-				addProvinceOwnership( cur_battle.provid, atoi(smatch[1].str().c_str()) );
+				addProvinceOwnership( atoi(smatch[1].str().c_str()), cur_battle.provid );
 				std::cout << "The winner was " << smatch[1].str() << "\n";
 				cur_battle.provid = -1;
 			}

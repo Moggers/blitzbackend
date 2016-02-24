@@ -25,6 +25,8 @@ namespace SQL
 		void addNationToMatch( Game::Match * match, Game::Nation * nation );
 		void addTurn( Game::Match * match, int tn );
 		void updateTimestamp( Game::Match * match );
+		void updateMatchSettings( Game::Match * match );
+		void markRestarted( Game::Match * match );
 		int getTurnNumber( Game::Match * match );
 		Game::Nation * getNation( int id );
 		Game::Nation ** getDeleteRequests( Game::Match * match );

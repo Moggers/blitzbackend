@@ -28,7 +28,11 @@ namespace Game
 		port{atoi(match[5])},
 		research{atoi(match[10])},
 		renaming{atoi(match[11])},
-		clientstart{atoi(match[12])}
+		clientstart{atoi(match[12])},
+		hostday{atoi(match[14])},
+		hosthour{atoi(match[15])},
+		hostint{atoi(match[16])},
+		needsrestart{atoi(match[18])}
 	{
 		this->mapName = (char*)malloc( strlen( map[0] ) + 1 );
 		strcpy( this->mapName, map[0] );
@@ -41,9 +45,6 @@ namespace Game
 		this->t[1] = atoi(match[7]);
 		this->t[2] = atoi(match[8]);
 		this->t[3] = atoi(match[9]);
-		this->hostday = atoi(match[14]);
-		this->hosthour = atoi(match[15]);
-		this->hostint = atoi(match[16]);
 		this->mods = new std::vector<Game::Mod*>(*mods);
 	}
 
@@ -58,7 +59,8 @@ namespace Game
 	clientstart{match->clientstart},
 	hostday{match->hostday},
 	hosthour{match->hosthour},
-	hostint{match->hostint}
+	hostint{match->hostint},
+	needsrestart{match->needsrestart}
 	{
 		this->mapName = (char*)calloc( 1024, sizeof( char ) );
 		this->imgName = (char*)calloc( 1024, sizeof( char ) );
@@ -118,5 +120,22 @@ namespace Game
 			this->name,
 			this->id );
 		return str;
+	}
+
+	void Match::update( Match * match )
+	{
+		this->mapid = match->mapid;
+		this->research = match->research;
+		this->renaming = match->renaming;
+		this->clientstart = match->clientstart;
+		this->t[0] = match->t[0];
+		this->t[1] = match->t[1];
+		this->t[2] = match->t[2];
+		this->t[3] = match->t[3];
+		delete( match->mods );
+		match->mods = new std::vector<Mod*>();
+		for( auto m : *match->mods ) {
+			match->mods->push_back( new Mod(m) );
+		}
 	}
 }

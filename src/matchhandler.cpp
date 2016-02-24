@@ -67,6 +67,13 @@ namespace Server
 				fprintf( stdout, "I found a match, It is meant to be running on port %d, but I don't know about it\n", cmatch->port );
 			} else { // Running
 				Server::MatchInstance * inst = *getMatchInstance(cmatch);
+				if( cmatch->needsrestart ) {
+					inst->match->update( cmatch );
+					inst->restart();
+					m_table->updateMatchSettings( inst->match );
+					m_table->markRestarted(inst->match);
+					continue;
+				}
 				if( inst->watcher->mesg > 0 ) {
 					inst->match->status = (inst->watcher->mesg-40)/ 5 + 10;
 					if( inst->match->status == 10 ) {
