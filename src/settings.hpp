@@ -14,6 +14,7 @@ namespace Server
 		static const char * dbpass;
 		static const char * dbname;
 		static const char * jsondir;
+		static const char * pretenderdir;
 		static int loadSettings( const char * configpath );
 		static void destroy( void );
 		private:

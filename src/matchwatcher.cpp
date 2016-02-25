@@ -1,4 +1,5 @@
 #include <string>
+#include <sys/stat.h>
 #include <regex>
 #include "turnparser.hpp"
 #include <string.h>
@@ -79,38 +80,54 @@ namespace Server
 					return NULL;
 				}
 				// Search for start string
-				if( std::regex_match( recvMessage, match, std::regex( ".*([0-9]+) seconds.*" ) ) ) {
-					fprintf( stdout, "Updating countdown\n" );
+				if( std::regex_match( recvMessage, match, std::regex( ".* ([0-9]+) seconds.*" ) ) ) {
 					int countdown = atoi(match[1].str().c_str());
-					if( countdown % 5 == 0 )
+					if( countdown % 5 == 0 ) {
 						watcher->mesg = 40 + countdown; 
-					continue;
+					}
+					goto end;
 				}
 				// Search for player join string
 				if( std::regex_match( recvMessage, match, std::regex( ".*Receiving god for ([0-9]+).*" ) ) ) {
 					int nationid = atoi(match[1].str().c_str());
 					Game::Nation * nation = watcher->table->getNation( nationid );
-					watcher->table->addNationToMatch( watcher->match, nation );
-					watcher->lastn = nationid;
-					fprintf( stdout, "Added nation %s to match %s(%lu)\n", nation->name, watcher->match->name, watcher->match->id );
+					if( watcher->table->checkPlayerPresent( watcher->match, nation ) == 0 ) {
+						watcher->table->addNationToMatch( watcher->match, nation );
+						fprintf( stdout, "Added nation %s to match %s(%lu)\n", nation->name, watcher->match->name, watcher->match->id );
+						// THE FOLLOWING IS MEANT TO MARK A PRETENDER AS READONLY TO PREVENT OVERWRITING OTHERS' WITH YOUR OWN
+						// IT SIMPLY CAUSES DOM4 TO CRASH DUE TO BEING UNABLE TO WRITE TO THE FILE
+						/*std::stringstream path;
+						path << Server::Settings::savepath << "/" << watcher->match->name << watcher->match->id << "/" << watcher->table->getNation(nationid)->turnname << ".2h";
+						fprintf( stdout, "Found the pretender name, marking him as readonly now at %s\n", path.str().c_str() );
+						if( chmod( path.str().c_str(), 0000 ) != 0 ) {
+							fprintf( stdout, "Failed to mark .2h as read only %d\n", errno );
+						} else {
+							fprintf( stdout, "Done\n" );
+						} */
+					}
 					free( nation );
-					continue;
+					goto end;
+				}
+				if( std::regex_match( recvMessage, match, std::regex(R"(.*Load newlord \(.*\) ([0-9]+).*)" ) ) ) {
+				//if( std::regex_match( recvMessage, match, std::regex(R"(.*Load newlord.*)" ) ) ) {
+					fprintf( stdout, "Found mention of 2h: %s\n", recvMessage.c_str() );
+					watcher->lastn = atoi(match[1].str().c_str());
 				}
 				// Search for nation 2h name (but only if we know a nation just joined)
 				if( watcher->lastn != -1 ) {
-					if( std::regex_match( recvMessage, match, std::regex( R"(.*saving as \/(.*\/)(.*).2h.*)"))) {
-						const char * name = match[2].str().c_str();
-						fprintf( stdout, "%s\n", name );
+					if( std::regex_match( recvMessage, match, std::regex( R"(.*\/(.*).2h.*)"))) {
+						const char * name = match[1].str().c_str();
+						fprintf( stdout, "Found name: %s\n", name );
 						watcher->table->setTurnfileName( watcher->lastn, name );
 						watcher->lastn = -1;
-						continue;
+						goto end;
 					}
 
 				}
 				// Check for a turn number
 				if( std::regex_match( recvMessage, match, std::regex(R"(^fatherturn ([0-9]+).*)"))) {
 					watcher->currentturn = atoi(match[1].str().c_str());
-					continue;
+					goto end;
 				}
 				// Search for new turn
 				if( std::regex_match( recvMessage, match, std::regex(R"(^_+ month +([0-9]+) _+.*)"))) {
@@ -119,10 +136,11 @@ namespace Server
 					fprintf( stdout, "Turn rollover for %s:%d\n", watcher->match->name, watcher->currentturn );
 					turnParser.writeTurn();
 					turnParser.newTurn( watcher->currentturn+1 );
-					continue;
+					goto end;
 				}
 
 				// Find the next line
+				end:
 				line = newline+1;
 				
 			}

@@ -1,6 +1,7 @@
 #include "table.hpp"
 #include "settings.hpp"
 #include <string.h>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -270,12 +271,36 @@ namespace SQL
 			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n", sqlerrno );
 	}
 
+	int Table::checkPlayerPresent( Game::Match * match, Game::Nation * nation )
+	{
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "select id from matchnations where match_id=%lu AND nation_id=%d", match->id, nation->id );
+		int sqlerrno;
+		if( ( sqlerrno = mysql_query( m_con, query ) ) != 0 )
+			fprintf( stdout, "Failed to poll database for nation's existance in game %s\n", match->name );
+		MYSQL_RES * res = mysql_store_result( m_con );
+		MYSQL_ROW row;
+		if( ( row = mysql_fetch_row( res ) ) != 0 ) {
+			mysql_free_result( res );
+			return 1;
+		}
+		mysql_free_result( res );
+		return 0;
+	}
+
 	void Table::addNationToMatch( Game::Match * match, Game::Nation * nation )
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		removeNationFromMatch( match, nation );
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		sprintf( query, "insert into matchnations values (0, %d, %lu, 0)", nation->id, match->id );
+		std::stringstream stream;
+		stream << Server::Settings::pretenderdir << "/" << match->name << match->id << "/" << nation->turnname << ".2h";
+		char * com = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( com, "%s/%s%d/", Server::Settings::pretenderdir, match->name, match->id );
+		mkdir( com, 0755 );
+		sprintf( com, "rsync -trv \"%s/%s%d/%s.2h\" \"%s\"", Server::Settings::savepath, match->name, match->id, nation->turnname, stream.str().c_str() );
+		system( com );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
 			fprintf( stdout, "Failed to add nation to match in database (%lu,%d) %d\n", match->id, nation->id, sqlerrno );
@@ -295,6 +320,25 @@ namespace SQL
 		MYSQL_ROW nationrow = mysql_fetch_row( nationstuff );
 		Game::Nation * newNation = new Game::Nation( id, nationrow[1], nationrow[2], nationrow[3] );
 		return newNation;
+	}
+
+	std::vector<Game::Nation*> * Table::getNations( Game::Match * match )
+	{
+		char * query = (char*)calloc(128, sizeof( char ) );
+		sprintf( query, "select nation_id from matchnations where match_id=%d", match->id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Failed to retrieve list of nations for match %d: %d\n", match->id, sqlerrno );
+		}
+		MYSQL_RES * nations = mysql_store_result( m_con );
+		std::vector<Game::Nation*> * retnat = new std::vector<Game::Nation*>();
+		if( nations != NULL ) {
+			MYSQL_ROW row;
+			while( ( row = mysql_fetch_row( nations ) ) != NULL ) {
+				retnat->push_back( this->getNation( atoi(row[0]) ) );
+			}
+		}
+		return retnat;
 	}
 
 	Game::Nation ** Table::getDeleteRequests( Game::Match * match )
@@ -329,6 +373,6 @@ namespace SQL
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Failed to update nation turn name %d\n", sqlerrno );
 		else
-			fprintf( stdout, "Updated turn name %d is now %s\n", nationid, name );
+			fprintf( stdout, "Updated nation (%d) turn name is now %s\n", nationid, name );
 	}
 }

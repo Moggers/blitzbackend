@@ -21,6 +21,8 @@ namespace Server
 		int shutdown( void );
 		void restart( void );
 		int checkTimer( Game::Match * match );
+		void allowTurnChanges();
+		void moveInTurns();
 		Server::MatchWatcher * watcher;
 	};
 }

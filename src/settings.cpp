@@ -14,6 +14,7 @@ namespace Server {
 	const char * Settings::dbpass;
 	const char * Settings::dbname;
 	const char * Settings::jsondir;
+	const char * Settings::pretenderdir;
 	config_t * Settings::cf;
 	int Settings::loadSettings( const char * configpath )
 	{
@@ -124,6 +125,14 @@ namespace Server {
 			jsondir = (const char *)calloc( 512, sizeof( char ) );
 			fscanf( stdin, "%s", (char*)jsondir );
 			config_setting_set_string( config_lookup( cf, "jsondir"), jsondir );
+		}
+		if( canread && config_lookup_string( cf, "pretenderdir", &pretenderdir ) )
+			fprintf( stdout, "Found pretenderdir: %s\n", pretenderdir );
+		else {
+			fprintf( stdout, "Failed to find database name. Please tell me what it is.\n" );
+			pretenderdir = (const char *)calloc( 512, sizeof( char ) );
+			fscanf( stdin, "%s", (char*)pretenderdir );
+			config_setting_set_string( config_lookup( cf, "pretenderdir"), pretenderdir );
 		}
 
 		if( config_write_file( cf, configfile ) == CONFIG_FALSE ) {

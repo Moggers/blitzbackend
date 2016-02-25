@@ -28,8 +28,10 @@ namespace SQL
 		void updateMatchSettings( Game::Match * match );
 		void markRestarted( Game::Match * match );
 		int getTurnNumber( Game::Match * match );
+		int checkPlayerPresent( Game::Match * match, Game::Nation * nation );
 		Game::Nation * getNation( int id );
 		Game::Nation ** getDeleteRequests( Game::Match * match );
+		std::vector<Game::Nation*> * getNations( Game::Match * match );
 		void setTurnfileName( int nationid, const char * name );
 
 		private:

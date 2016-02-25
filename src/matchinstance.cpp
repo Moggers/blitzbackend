@@ -1,6 +1,8 @@
 #include "matchinstance.hpp"
+#include <sstream>
 #include <string.h>
 #include <sys/wait.h>
+#include "nation.hpp"
 #include <signal.h>
 #include <stdlib.h>
 #include "table.hpp"
@@ -98,5 +100,25 @@ namespace Server
 		this->process = proc;
 		this->watcher = new MatchWatcher( this->process, m_table, this->match );
 		this->watcher->port = this->match->port;
+	}
+
+	void MatchInstance::allowTurnChanges()
+	{
+		std::vector<Game::Nation*> * nat = this->m_table->getNations( this->match );
+		for( Game::Nation* cn : *nat ) {
+			std::ostringstream path;
+			path << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/" << cn->turnname << ".2h";
+			chmod( path.str().c_str(), 0755 );
+		}
+	}
+
+	void MatchInstance::moveInTurns()
+	{
+		fprintf( stdout, "Copying in pretenders\n" );
+		std::vector<Game::Nation*> * nat = m_table->getNations( this->match );
+		char * com = (char*)calloc( 1024, sizeof( char ) );
+		sprintf( com, "rsync -trv \"%s/%s%d/\" \"%s/%s%d/\"", 
+			Server::Settings::pretenderdir, this->match->name, this->match->id, Server::Settings::savepath, this->match->name, this->match->id );
+		system( com );
 	}
 }

@@ -108,7 +108,7 @@ namespace Game
 		if( this->hosthour != 0 || this->hostday != 0 ) {
 			sprintf( str + strlen( str ), "--hosttime %d %d", this->hostday, this->hosthour );
 		}
-		sprintf( str + strlen( str ), "--renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
+		sprintf( str + strlen( str ), "--renaming %d -ddd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
 			this->renaming,
 			this->research,
 			this->age, 
