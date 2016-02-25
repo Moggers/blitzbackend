@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include "nation.hpp"
 #include <signal.h>
 #include <stdlib.h>
@@ -117,7 +118,7 @@ namespace Server
 		fprintf( stdout, "Copying in pretenders\n" );
 		std::vector<Game::Nation*> * nat = m_table->getNations( this->match );
 		char * com = (char*)calloc( 1024, sizeof( char ) );
-		sprintf( com, "rsync -trv \"%s/%s%d/\" \"%s/%s%d/\"", 
+		sprintf( com, "rsync -trv \"%s/%s%lu/\" \"%s/%s%lu/\"", 
 			Server::Settings::pretenderdir, this->match->name, this->match->id, Server::Settings::savepath, this->match->name, this->match->id );
 		system( com );
 	}
