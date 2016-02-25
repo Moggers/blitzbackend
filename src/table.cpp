@@ -1,5 +1,6 @@
 #include "table.hpp"
 #include "settings.hpp"
+#include <sys/stat.h>
 #include <string.h>
 #include <sstream>
 #include <stdio.h>
@@ -233,7 +234,7 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query,  "update matches set needsrestart=0 where id=%d", match->id );
+		sprintf( query,  "update matches set needsrestart=0 where id=%lu", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Failed to notify db of match restart %d\nSQL was %s\n", sqlerrno, query );
@@ -297,9 +298,9 @@ namespace SQL
 		std::stringstream stream;
 		stream << Server::Settings::pretenderdir << "/" << match->name << match->id << "/" << nation->turnname << ".2h";
 		char * com = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( com, "%s/%s%d/", Server::Settings::pretenderdir, match->name, match->id );
+		sprintf( com, "%s/%s%lu/", Server::Settings::pretenderdir, match->name, match->id );
 		mkdir( com, 0755 );
-		sprintf( com, "rsync -trv \"%s/%s%d/%s.2h\" \"%s\"", Server::Settings::savepath, match->name, match->id, nation->turnname, stream.str().c_str() );
+		sprintf( com, "rsync -trv \"%s/%s%lu/%s.2h\" \"%s\"", Server::Settings::savepath, match->name, match->id, nation->turnname, stream.str().c_str() );
 		system( com );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
@@ -325,10 +326,10 @@ namespace SQL
 	std::vector<Game::Nation*> * Table::getNations( Game::Match * match )
 	{
 		char * query = (char*)calloc(128, sizeof( char ) );
-		sprintf( query, "select nation_id from matchnations where match_id=%d", match->id );
+		sprintf( query, "select nation_id from matchnations where match_id=%lu", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
-			fprintf( stdout, "Failed to retrieve list of nations for match %d: %d\n", match->id, sqlerrno );
+			fprintf( stdout, "Failed to retrieve list of nations for match %lu: %d\n", match->id, sqlerrno );
 		}
 		MYSQL_RES * nations = mysql_store_result( m_con );
 		std::vector<Game::Nation*> * retnat = new std::vector<Game::Nation*>();
