@@ -33,7 +33,7 @@ target_link_libraries( blitzserver
 	${JSONCPP_LIBRARY}
 	)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -I ../lib/json/")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 set(Jsoncpp_PROCESS_INCLUDES Jsoncpp_INCLUDE_DIR)
 set(Jsoncpp_PROCESS_LIBS Jsoncpp_LIBRARY)
 

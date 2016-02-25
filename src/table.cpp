@@ -270,6 +270,8 @@ namespace SQL
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
 			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n", sqlerrno );
+		sprintf( query, "rm \"%s/%s%lu/%s.2h\"", Server::Settings::pretenderdir, match->name, match->id, nation->turnname );
+		system( query );
 	}
 
 	int Table::checkPlayerPresent( Game::Match * match, Game::Nation * nation )
