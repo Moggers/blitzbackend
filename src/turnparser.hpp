@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <regex>
 namespace Server
 {
 	typedef struct turn_battle_s
@@ -28,6 +29,7 @@ namespace Server
 		std::string jsondir;
 		std::string filename;
 		turn_battle_t cur_battle;
+		std::vector<std::regex> regex_set;
 
 		void addProvinceOwnership( int nationid, int provid );
 	};

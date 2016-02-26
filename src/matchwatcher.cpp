@@ -26,6 +26,15 @@ namespace Server
 		kill = 0;
 		pollproc = (popen2_t*)calloc( 1, sizeof( popen2_t) );
 		watchThread = std::thread( watchCallback, this );
+		regex_set.push_back( std::regex(".*nick fel.*" ) );
+		regex_set.push_back( std::regex( ".* ([0-9]+) seconds.*" ) );
+		regex_set.push_back( std::regex( ".*Receiving god for ([0-9]+).*" ) );
+		regex_set.push_back( std::regex(R"(.*Load newlord \(.*\) ([0-9]+).*)" ) );
+		regex_set.push_back( std::regex( R"(.*\/(.*).2h.*)" ) );
+		regex_set.push_back( std::regex(R"(^fatherturn ([0-9]+).*)" ) );
+		regex_set.push_back( std::regex(R"(^_+ month +([0-9]+) _+.*)" ) );
+		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
+		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
 	}
 
 	void* MatchWatcher::watchCallback( void* arg )
@@ -74,13 +83,20 @@ namespace Server
 				std::string recvMessage( line );
 				turnParser.parseLine( recvMessage );
 				// Search for failure string
-				if( std::regex_match( recvMessage, match, std::regex( ".*nick fel.*" ) ) ) {
+				if( std::regex_match( recvMessage, match, watcher->regex_set[0] ) ) {
 					watcher->mesg = STATUS_FAILURE;
 					free( buff );
 					return NULL;
 				}
+				// Search for bullshit
+				if( std::regex_match( recvMessage, match, watcher->regex_set[7] ) ) {
+					goto end;
+				}
+				if( std::regex_match( recvMessage, match, watcher->regex_set[8] ) ) {
+					goto end;
+				}
 				// Search for start string
-				if( std::regex_match( recvMessage, match, std::regex( ".* ([0-9]+) seconds.*" ) ) ) {
+				if( std::regex_match( recvMessage, match, watcher->regex_set[1] ) ) {
 					int countdown = atoi(match[1].str().c_str());
 					if( countdown % 5 == 0 ) {
 						watcher->mesg = 40 + countdown; 
@@ -88,7 +104,7 @@ namespace Server
 					goto end;
 				}
 				// Search for player join string
-				if( std::regex_match( recvMessage, match, std::regex( ".*Receiving god for ([0-9]+).*" ) ) ) {
+				if( std::regex_match( recvMessage, match, watcher->regex_set[2] ) ) {
 					int nationid = atoi(match[1].str().c_str());
 					Game::Nation * nation = watcher->table->getNation( nationid );
 					if( watcher->table->checkPlayerPresent( watcher->match, nation ) == 0 ) {
@@ -108,14 +124,14 @@ namespace Server
 					free( nation );
 					goto end;
 				}
-				if( std::regex_match( recvMessage, match, std::regex(R"(.*Load newlord \(.*\) ([0-9]+).*)" ) ) ) {
+				if( std::regex_match( recvMessage, match, watcher->regex_set[3] ) ) {
 				//if( std::regex_match( recvMessage, match, std::regex(R"(.*Load newlord.*)" ) ) ) {
 					fprintf( stdout, "Found mention of 2h: %s\n", recvMessage.c_str() );
 					watcher->lastn = atoi(match[1].str().c_str());
 				}
 				// Search for nation 2h name (but only if we know a nation just joined)
 				if( watcher->lastn != -1 ) {
-					if( std::regex_match( recvMessage, match, std::regex( R"(.*\/(.*).2h.*)"))) {
+					if( std::regex_match( recvMessage, match, watcher->regex_set[4] ) ) {
 						const char * name = match[1].str().c_str();
 						fprintf( stdout, "Found name: %s\n", name );
 						watcher->table->setTurnfileName( watcher->lastn, name );
@@ -125,12 +141,12 @@ namespace Server
 
 				}
 				// Check for a turn number
-				if( std::regex_match( recvMessage, match, std::regex(R"(^fatherturn ([0-9]+).*)"))) {
+				if( std::regex_match( recvMessage, match, watcher->regex_set[5] ) ) {
 					watcher->currentturn = atoi(match[1].str().c_str());
 					goto end;
 				}
 				// Search for new turn
-				if( std::regex_match( recvMessage, match, std::regex(R"(^_+ month +([0-9]+) _+.*)"))) {
+				if( std::regex_match( recvMessage, match, watcher->regex_set[6] ) ) {
 					watcher->table->addTurn( watcher->match, watcher->currentturn+1 );
 					watcher->table->updateTimestamp( watcher->match );
 					fprintf( stdout, "Turn rollover for %s:%d\n", watcher->match->name, watcher->currentturn );

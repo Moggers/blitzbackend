@@ -1,5 +1,6 @@
 #include "util.hpp"
 #include "table.hpp"
+#include <regex>
 #include <stdint.h>
 #include <thread>
 #include <mutex>
@@ -18,6 +19,7 @@ namespace Server
 		int kill;
 		int lastn;
 		int currentturn;
+		std::vector<std::regex> regex_set;
 
 		public:
 		int64_t playerbitmap;

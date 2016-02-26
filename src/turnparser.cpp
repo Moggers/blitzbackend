@@ -19,6 +19,11 @@ namespace Server
 		mkdir( this->jsondir.c_str(), 0755 );
 		cur_battle.provid = -1;
 		std::cout << "First (seen) turn " << turnN << " writing to " << filename << "\n";
+		regex_set.push_back( std::regex(R"(^nation ([0-9]+)  start land ([0-9]+).*)" ) );
+		regex_set.push_back( std::regex(R"(^ *([0-9]+) vs ([0-9]+) in lnr ([0-9]+).*)" ) );
+		regex_set.push_back( std::regex(R"(^_{5}The winner is ([0-9]+)_{7}.*)" ) );
+		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
+		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
 	}
 
 	void TurnParser::newTurn( int turnN )
@@ -43,12 +48,18 @@ namespace Server
 	{
 		std::string sl(line);
 		std::smatch smatch;
-		if( std::regex_match( sl, smatch, std::regex(R"(^nation ([0-9]+)  start land ([0-9]+).*)"))) {
+		if( std::regex_match( line, smatch, this->regex_set[3] ) ) {
+			return 0;
+		}
+		if( std::regex_match( line, smatch, this->regex_set[4] ) ) {
+			return 0;
+		}
+		if( std::regex_match( sl, smatch, this->regex_set[0] )) {
 			std::cout << "Nation " << smatch[1].str() << " starts in " << smatch[2].str() << "\n";
 			addProvinceOwnership( atoi(smatch[1].str().c_str()),atoi(smatch[2].str().c_str()) );
 			return 0;
 		}
-		if( std::regex_match( sl, smatch, std::regex(R"(^ *([0-9]+) vs ([0-9]+) in lnr ([0-9]+).*)"))) {
+		if( std::regex_match( sl, smatch, this->regex_set[1] ) ) {
 			std::cout << "Battle starting in " << smatch[3].str() << " between " << smatch[1].str() << " and " <<smatch[2].str() << "\n";
 			cur_battle.nationa = atoi(smatch[1].str().c_str());
 			cur_battle.nationb = atoi(smatch[2].str().c_str());
@@ -56,7 +67,7 @@ namespace Server
 			return 0;
 		}
 		if( cur_battle.provid != -1 ) {
-			if( std::regex_match( sl, smatch, std::regex(R"(^_{5}The winner is ([0-9]+)_{7}.*)"))) {
+			if( std::regex_match( sl, smatch, this->regex_set[2] ) )  {
 				addProvinceOwnership( atoi(smatch[1].str().c_str()), cur_battle.provid );
 				std::cout << "The winner was " << smatch[1].str() << "\n";
 				cur_battle.provid = -1;
