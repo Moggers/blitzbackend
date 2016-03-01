@@ -24,6 +24,7 @@ namespace Server
 		regex_set.push_back( std::regex(R"(^_{5}The winner is ([0-9]+)_{7}.*)" ) );
 		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
 		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
+		regex_set.push_back( std::regex(R"(.*([0-9]+) was conquered by ([0-9]+)+).*)"));
 	}
 
 	void TurnParser::newTurn( int turnN )
@@ -64,6 +65,10 @@ namespace Server
 			cur_battle.nationa = atoi(smatch[1].str().c_str());
 			cur_battle.nationb = atoi(smatch[2].str().c_str());
 			cur_battle.provid = atoi(smatch[3].str().c_str());
+			return 0;
+		}
+		if( std::regex_match( sl, smatch, this->regex_set[5] ) ) {
+			addProvinceOwnership( atoi(smatch[2].str().c_str()), atoi(smatch[1].str().c_str()));
 			return 0;
 		}
 		if( cur_battle.provid != -1 ) {
