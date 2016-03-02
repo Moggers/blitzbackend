@@ -24,7 +24,7 @@ namespace Server
 		regex_set.push_back( std::regex(R"(^_{5}The winner is ([0-9]+)_{7}.*)" ) );
 		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
 		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
-		regex_set.push_back( std::regex(R"(.*([0-9]+) was conquered by ([0-9]+)+).*)"));
+		regex_set.push_back( std::regex(R"(.*([0-9]+) was conquered by ([0-9]+).*)"));
 	}
 
 	void TurnParser::newTurn( int turnN )
