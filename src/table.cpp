@@ -258,6 +258,9 @@ namespace SQL
 		sprintf( query, "delete from turns where match_id=%lu", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to remove turns from match %d\n", sqlerrno );
+		sprintf( query, "delete from emailrequests where match_id=%lu", match->id );
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+			fprintf( stdout, "Warning! Failed to remove notification requests from match %d\n", sqlerrno );
 		sprintf( query, "delete from matches where id=%lu", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to delete match %lu at sql %d\n", match->id, sqlerrno );
