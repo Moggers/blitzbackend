@@ -27,5 +27,7 @@ namespace Server
 		MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match );
 		void destroyWatcher( void );
 		int mesg;
+
+		void sendAllNotifications( int type );
 	};
 }

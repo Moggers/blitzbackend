@@ -15,7 +15,23 @@ namespace Server {
 	const char * Settings::dbname;
 	const char * Settings::jsondir;
 	const char * Settings::pretenderdir;
+	const char * Settings::emailserver_address;
+	const char * Settings::emailuser;
+	const char * Settings::emailpass;
+	const char * Settings::domain;
 	config_t * Settings::cf;
+
+	void Settings::grabConfig( config_t * cf, const char * name, const char ** dest, int canread )
+	{
+		if( canread && config_lookup_string( cf, name, dest ) )
+			fprintf( stdout, "Found %s load directory: %s\n", name, *dest );
+		else {
+			fprintf( stdout, "Failed to find %s. Please tell me where it is.\n", name );
+			*dest = (const char *)calloc( 512, sizeof( char ) );
+			fscanf( stdin, "%s", (char*)mappath_load );
+			config_setting_set_string( config_lookup( cf, "mappath_load"), *dest );
+		}
+	}
 	int Settings::loadSettings( const char * configpath )
 	{
 		char * configfile = (char*)calloc( 256, sizeof( char* ));
@@ -25,7 +41,6 @@ namespace Server {
 
 		cf = (config_t*)calloc( 1, sizeof( config_t ) );
 		config_init( cf );
-
 
 		int canread = 1;
 		if( !config_read_file( cf, configfile ) ) {
@@ -38,103 +53,21 @@ namespace Server {
 			canread = 0;
 		}
 
-		if( canread && config_lookup_string( cf, "mappath_load", &mappath_load ) )
-			fprintf( stdout, "Found mappath load directory: %s\n", mappath_load );
-		else {
-			fprintf( stdout, "Failed to find map load directory. Please tell me where it is.\n" );
-			mappath_load = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)mappath_load );
-			config_setting_set_string( config_lookup( cf, "mappath_load"), mappath_load );
-		}
-		
-		if( canread && config_lookup_string( cf, "mappath_save", &mappath_save ) )
-			fprintf( stdout, "Found mappath save directory: %s\n", mappath_save );
-		else {
-			fprintf( stdout, "Failed to find map save directory. Please tell me where it is.\n" );
-			mappath_save = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)mappath_save );
-			config_setting_set_string( config_lookup( cf, "mappath_save"), mappath_save );
-		}
-		if( canread && config_lookup_string( cf, "modpath_load", &modpath_load ) )
-			fprintf( stdout, "Found modpath load directory: %s\n", modpath_load );
-		else {
-			fprintf( stdout, "Failed to find mod load directory. Please tell me where it is.\n" );
-			modpath_load = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)modpath_load );
-			config_setting_set_string( config_lookup( cf, "modpath_load"), modpath_load );
-		}
-		
-		if( canread && config_lookup_string( cf, "modpath_save", &modpath_save ) )
-			fprintf( stdout, "Found modpath save directory: %s\n", modpath_save );
-		else {
-			fprintf( stdout, "Failed to find mod save directory. Please tell me where it is.\n" );
-			modpath_save = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)modpath_save );
-			config_setting_set_string( config_lookup( cf, "modpath_save"), modpath_save );
-		}
-
-		if( canread && config_lookup_string( cf, "savepath", &savepath ) )
-			fprintf( stdout, "Found mappath save directory: %s\n", savepath );
-		else {
-			fprintf( stdout, "Failed to find dom4 save directory. Please tell me where it is.\n" );
-			savepath = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)savepath );
-			config_setting_set_string( config_lookup( cf, "savepath"), savepath );
-		}
-
-		if( canread && config_lookup_string( cf, "exepath", &exepath ) )
-			fprintf( stdout, "Found exepath: %s\n", exepath );
-		else {
-			fprintf( stdout, "Failed to find dom4 exe directory. Please tell me where it is.\n" );
-			exepath = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)exepath );
-			config_setting_set_string( config_lookup( cf, "exepath"), exepath );
-		}
-
-		if( canread && config_lookup_string( cf, "dbuser", &dbuser ) )
-			fprintf( stdout, "Found dbuser: %s\n", dbuser );
-		else {
-			fprintf( stdout, "Failed to find database user. Please tell me who it is.\n" );
-			dbuser = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)dbuser );
-			config_setting_set_string( config_lookup( cf, "dbuser"), dbuser );
-		}
-
-		if( canread && config_lookup_string( cf, "dbpass", &dbpass ) )
-			fprintf( stdout, "Found dbpass\n" );
-		else {
-			fprintf( stdout, "Failed to find database password. Please tell me what it is.\n" );
-			dbpass = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)dbpass );
-			config_setting_set_string( config_lookup( cf, "dbpass"), dbpass );
-		}
-
-		if( canread && config_lookup_string( cf, "dbname", &dbname ) )
-			fprintf( stdout, "Found dbname: %s\n", dbname );
-		else {
-			fprintf( stdout, "Failed to find database name. Please tell me what it is.\n" );
-			dbname = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)dbname );
-			config_setting_set_string( config_lookup( cf, "dbname"), dbname );
-		}
-
-		if( canread && config_lookup_string( cf, "jsondir", &jsondir ) )
-			fprintf( stdout, "Found jsondir: %s\n", jsondir );
-		else {
-			fprintf( stdout, "Failed to find database name. Please tell me what it is.\n" );
-			jsondir = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)jsondir );
-			config_setting_set_string( config_lookup( cf, "jsondir"), jsondir );
-		}
-		if( canread && config_lookup_string( cf, "pretenderdir", &pretenderdir ) )
-			fprintf( stdout, "Found pretenderdir: %s\n", pretenderdir );
-		else {
-			fprintf( stdout, "Failed to find database name. Please tell me what it is.\n" );
-			pretenderdir = (const char *)calloc( 512, sizeof( char ) );
-			fscanf( stdin, "%s", (char*)pretenderdir );
-			config_setting_set_string( config_lookup( cf, "pretenderdir"), pretenderdir );
-		}
-
+		grabConfig( cf, "mappath_load", &mappath_load, canread );
+		grabConfig( cf, "mappath_save", &mappath_save, canread );
+		grabConfig( cf, "modpath_load", &modpath_load, canread );
+		grabConfig( cf, "modpath_save", &modpath_save, canread );
+		grabConfig( cf, "savepath", &savepath, canread );
+		grabConfig( cf, "exepath", &exepath, canread );
+		grabConfig( cf, "dbuser", &dbuser, canread );
+		grabConfig( cf, "dbpass", &dbpass, canread );
+		grabConfig( cf, "dbname", &dbname, canread );
+		grabConfig( cf, "jsondir", &jsondir, canread );
+		grabConfig( cf, "pretenderdir", &pretenderdir, canread );
+		grabConfig( cf, "emailserver_address", &pretenderdir, canread );
+		grabConfig( cf, "emailuser", &emailuser, canread );
+		grabConfig( cf, "emailpass", &emailpass, canread );
+		grabConfig( cf, "domain", &domain, canread );
 		if( config_write_file( cf, configfile ) == CONFIG_FALSE ) {
 			fprintf( stdout, "Failed to write config\n" );
 		}

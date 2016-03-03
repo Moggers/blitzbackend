@@ -6,6 +6,7 @@ find_package(Threads)
 find_package(LibConfig)
 find_package(MySQL)
 find_package(Jsoncpp)
+find_package(POCO)
 if(JSONCPP_FOUND)
 	message("INFO: we found LibJsoncpp on your pc.")
 	message(JSONCPP_FOUND = ${JSONCPP_FOUND})
@@ -25,13 +26,21 @@ message( ${CMAKE_MODULE_PATH})
 
 include_directories( 
 	${MYSQL_INCLUDE_DIR}
-	${JSONCPP_INCLUDE_DIR})
+	${JSONCPP_INCLUDE_DIR}
+	${POCO_INCLUDE_DIR}
+	${POCO_Util_INCLUDE_DIR}
+	${POCO_Net_INCLUDE_DIR}
+	${POCO_NetSSL_INCLUDE_DIR})
+
 target_link_libraries( blitzserver 
 	${LIBCONFIG_LIBRARIES}
 	${MYSQL_LIBRARY}
 	${CMAKE_THREAD_LIBS_INIT}
 	${JSONCPP_LIBRARY}
-	)
+	${POCO_LIBRARY}
+	${POCO_Util_LIBRARY}
+	${POCO_Net_LIBRARY}
+	${POCO_NetSSL_LIBRARY})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 set(Jsoncpp_PROCESS_INCLUDES Jsoncpp_INCLUDE_DIR)

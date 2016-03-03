@@ -1,4 +1,5 @@
 #include "table.hpp"
+#include <iostream>
 #include "settings.hpp"
 #include <sys/stat.h>
 #include <string.h>
@@ -276,6 +277,7 @@ namespace SQL
 
 	int Table::checkPlayerPresent( Game::Match * match, Game::Nation * nation )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		sprintf( query, "select id from matchnations where match_id=%lu AND nation_id=%d", match->id, nation->id );
 		int sqlerrno;
@@ -327,6 +329,7 @@ namespace SQL
 
 	std::vector<Game::Nation*> * Table::getNations( Game::Match * match )
 	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc(128, sizeof( char ) );
 		sprintf( query, "select nation_id from matchnations where match_id=%lu", match->id );
 		int sqlerrno;
@@ -377,5 +380,49 @@ namespace SQL
 			fprintf( stdout, "Failed to update nation turn name %d\n", sqlerrno );
 		else
 			fprintf( stdout, "Updated nation (%d) turn name is now %s\n", nationid, name );
+	}
+
+	std::vector<Server::emailrequest_t> * Table::getEmailRequests( int match_id )
+	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "select hours,email from emailrequests where match_id=%lu", match_id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Failed to retrieve notification requests %d\n", sqlerrno );
+		} else {
+			std::vector<Server::emailrequest_t> * vec = new std::vector<Server::emailrequest_t>();
+			MYSQL_RES * emailreqs = mysql_store_result( m_con );
+			if( emailreqs == NULL )
+				return NULL;
+			MYSQL_ROW emailrow;
+			while( (emailrow = mysql_fetch_row( emailreqs ) ) != NULL ) {
+				vec->push_back(Server::emailrequest_t{match_id, strdup(emailrow[1]), atoi(emailrow[0])});
+			}
+			mysql_free_result( emailreqs );
+			return vec;
+		}
+	}
+
+	std::vector<Server::emailrequest_t> * Table::getUniqueEmailRequests( int match_id )
+	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "select distinct email from emailrequests where match_id=%lu", match_id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Failed to retrieve notification requests %d\n", sqlerrno );
+		} else {
+			std::vector<Server::emailrequest_t> * vec = new std::vector<Server::emailrequest_t>();
+			MYSQL_RES * emailreqs = mysql_store_result( m_con );
+			if( emailreqs == NULL )
+				return NULL;
+			MYSQL_ROW emailrow;
+			while( (emailrow = mysql_fetch_row( emailreqs ) ) != NULL ) {
+				vec->push_back(Server::emailrequest_t{0, strdup(emailrow[0]), 0});
+			}
+			mysql_free_result( emailreqs );
+			return vec;
+		}
 	}
 }

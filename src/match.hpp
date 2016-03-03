@@ -18,6 +18,7 @@ namespace Game
 		~Match( void );
 		char* createConfStr( void );
 		void update( Game::Match * match );
+		void sendAllNotifications( void );
 		unsigned long id;
 		int mapid;
 		char * mapName;

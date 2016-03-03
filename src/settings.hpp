@@ -1,3 +1,4 @@
+#pragma once
 #include <libconfig.h>
 namespace Server
 {
@@ -15,9 +16,14 @@ namespace Server
 		static const char * dbname;
 		static const char * jsondir;
 		static const char * pretenderdir;
+		static const char * emailserver_address;
+		static const char * emailuser;
+		static const char * emailpass;
+		static const char * domain;
 		static int loadSettings( const char * configpath );
 		static void destroy( void );
 		private:
 		static config_t * cf;
+		static void grabConfig( config_t* cf, const char * name, const char ** dest, int canread );
 	};
 }

@@ -9,6 +9,7 @@
 #include "mod.hpp"
 #include <mutex>
 #include <vector>
+#include "emailsender.hpp"
 namespace SQL
 {
 	class Table
@@ -33,6 +34,8 @@ namespace SQL
 		Game::Nation ** getDeleteRequests( Game::Match * match );
 		std::vector<Game::Nation*> * getNations( Game::Match * match );
 		void setTurnfileName( int nationid, const char * name );
+		std::vector<Server::emailrequest_t> * getEmailRequests( int match_id );
+		std::vector<Server::emailrequest_t> * getUniqueEmailRequests( int match_id );
 
 		private:
 		MYSQL * m_con;
