@@ -35,6 +35,7 @@ namespace Server
 		regex_set.push_back( std::regex(R"(^_+ month +([0-9]+) _+.*)" ) );
 		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
 		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
+		regex_set.push_back( std::regex(R"(.*tcp_get2hfile: gname:.* pl:([0-9]+).*)"));
 	}
 
 	void* MatchWatcher::watchCallback( void* arg )
@@ -157,8 +158,13 @@ namespace Server
 					turnParser.newTurn( watcher->currentturn+1 );
 					goto end;
 				}
+				// Search for received turn
 
 				// Find the next line
+				if( std::regex_match( recvMessage, match, watcher->regex_set[9] ) ) {
+					fprintf( stdout, "Received turn on match %s for player %d\n", watcher->match->name, atoi(match[1].str().c_str()) );
+					watcher->table->markTurnSubmitted( watcher->match, atoi(match[1].str().c_str()) );
+				}
 				end:
 				line = newline+1;
 				

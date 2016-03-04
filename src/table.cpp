@@ -428,4 +428,54 @@ namespace SQL
 			return vec;
 		}
 	}
+
+	void Table::markTurnSubmitted( Game::Match * match, int pl )
+	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "select id from matchnations where nation_id=%d AND match_id=%lu", pl, match->id  );
+		int matchnation_id;
+		int turn_id;
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Failed to retrieve matchnation for match %lu nation %d\n", match->id, pl );
+		} else {
+			MYSQL_RES * res = mysql_store_result( m_con );
+			if( res == NULL ) {
+				fprintf( stdout, "Failed to retrieve matchnation for match %lu nation %d\n", match->id, pl );
+				return;
+			}
+			MYSQL_ROW row = mysql_fetch_row( res );
+			if( row == NULL ) {
+				fprintf( stdout, "Failed to retrieve matchnation for match %lu nation %d\n", match->id, pl );
+				return;
+			}
+			matchnation_id = atoi(row[0]);
+			mysql_free_result( res );
+
+			sprintf( query, "select id from turns where match_id=%lu order by tn desc limit 1", match->id );
+			if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+				fprintf( stdout, "Failed to retrieve last turn for match %lu\n", match->id);
+			} else {
+				MYSQL_RES * res = mysql_store_result( m_con );
+				if( res == NULL ) {
+					fprintf( stdout, "Failed to retrieve last turn for match %lu\n", match->id);
+					return;
+				}
+				MYSQL_ROW row = mysql_fetch_row( res );
+				if( row == NULL ) {
+					fprintf( stdout, "Failed to retrieve last turn for match %lu\n", match->id);
+					return;
+				}
+				turn_id = atoi(row[0]);
+				mysql_free_result( res );
+
+				sprintf( query, "insert into matchnationturns (matchnation_id,turn_id) values(%d,%d)", matchnation_id, turn_id );
+				if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+					fprintf( stdout, "Failed to insert turn %d into match %s for nation %d\n", turn_id, match->name, matchnation_id);
+				}
+				fprintf( stdout, "Inserted new turn %d into match %s for player %d\n", turn_id, match->name, matchnation_id );
+			}
+		}
+	}
 }

@@ -36,6 +36,7 @@ namespace SQL
 		void setTurnfileName( int nationid, const char * name );
 		std::vector<Server::emailrequest_t> * getEmailRequests( int match_id );
 		std::vector<Server::emailrequest_t> * getUniqueEmailRequests( int match_id );
+		void markTurnSubmitted( Game::Match * match, int pl );
 
 		private:
 		MYSQL * m_con;
