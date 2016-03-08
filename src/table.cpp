@@ -249,7 +249,7 @@ namespace SQL
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		int sqlerrno;
-		sprintf( query, "delete from matchnationturns where turn_id in(selct turn_id from turns where match_id=%lu", match->id );
+		sprintf( query, "delete from matchnationturns where turn_id in(select id from turns where match_id=%lu)", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to remove matchnationturns from match %d\n", sqlerrno );
 		sprintf( query, "delete from matchnations where match_id=%lu", match->id );

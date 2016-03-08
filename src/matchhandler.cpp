@@ -75,6 +75,7 @@ namespace Server
 					continue;
 				}
 				if( inst->watcher->mesg > 0 ) {
+
 					inst->match->status = (inst->watcher->mesg-40)/ 5 + 10;
 					// Just before the game starts, copy the pretender files for the correct players into the match
 					if( inst->watcher->mesg == 45 ) {
@@ -146,6 +147,14 @@ namespace Server
 			} else { // Otherwise
 				if( cmatch->status == 3 ) {  // We've already started it
 					cimatch = *cimatchi;
+					if( cimatch->watcher->mesg == 70 ) {
+						fprintf( stdout, "Match %s ended\n", cimatch->match->name );
+						cimatch->match->status = 70;
+						m_table->saveMatch(cimatch->match);
+						cimatch->shutdown();
+						m_matches.erase( getMatchInstance( cmatch ) );
+						continue;
+					}
 					cimatch->checkTimer( cmatch );
 					m_table->saveMatch( cimatch->match );
 					continue;
