@@ -36,6 +36,7 @@ namespace Server
 		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
 		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
 		regex_set.push_back( std::regex(R"(.*tcp_get2hfile: gname:.* pl:([0-9]+).*)"));
+		regex_set.push_back( std::regex(R"(.*Game Over.*)" ) );
 	}
 
 	void* MatchWatcher::watchCallback( void* arg )
@@ -164,6 +165,12 @@ namespace Server
 				if( std::regex_match( recvMessage, match, watcher->regex_set[9] ) ) {
 					fprintf( stdout, "Received turn on match %s for player %d\n", watcher->match->name, atoi(match[1].str().c_str()) );
 					watcher->table->markTurnSubmitted( watcher->match, atoi(match[1].str().c_str()) );
+				}
+
+				// Find end of game
+				if( std::regex_match( recvMessage, match, watcher->regex_set[10] ) ) {
+					watcher->mesg = 70;
+					goto end;
 				}
 				end:
 				line = newline+1;
