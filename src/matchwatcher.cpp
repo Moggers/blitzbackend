@@ -25,6 +25,7 @@ namespace Server
 		lastn = -1;
 		kill = 0;
 		pollproc = (popen2_t*)calloc( 1, sizeof( popen2_t) );
+		currentturn = table->getTurnNumber( match );
 		watchThread = std::thread( watchCallback, this );
 		regex_set.push_back( std::regex(".*nick fel.*" ) );
 		regex_set.push_back( std::regex( ".* ([0-9]+) seconds.*" ) );
@@ -32,7 +33,7 @@ namespace Server
 		regex_set.push_back( std::regex(R"(.*Load newlord \(.*\) ([0-9]+).*)" ) );
 		regex_set.push_back( std::regex( R"(.*\/(.*).2h.*)" ) );
 		regex_set.push_back( std::regex(R"(^fatherturn ([0-9]+).*)" ) );
-		regex_set.push_back( std::regex(R"(^_+ month +([0-9]+) _+.*)" ) );
+		regex_set.push_back( std::regex(R"(placeholder)" ) );
 		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
 		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
 		regex_set.push_back( std::regex(R"(.*tcp_get2hfile: gname:.* pl:([0-9]+).*)"));
@@ -55,7 +56,7 @@ namespace Server
 		sprintf( matchdir, "%s/%lu/", Server::Settings::jsondir, watcher->match->id );
 		std::ostringstream stream;
 		stream << Server::Settings::jsondir << watcher->match->id << "/";
-		Server::TurnParser turnParser(matchdir, watcher->table->getTurnNumber( watcher->match ));
+		Server::TurnParser turnParser(matchdir, watcher->currentturn);
 		free( matchdir );
 
 		fcntl(watcher->proc->from_child, F_SETFL, flags | O_NONBLOCK);
@@ -146,7 +147,16 @@ namespace Server
 				}
 				// Check for a turn number
 				if( std::regex_match( recvMessage, match, watcher->regex_set[5] ) ) {
-					watcher->currentturn = atoi(match[1].str().c_str());
+					int tn = atoi(match[1].str().c_str());
+					if( watcher->currentturn != tn){
+						watcher->table->addTurn( watcher->match, watcher->currentturn+1 );
+						watcher->table->updateTimestamp( watcher->match );
+						watcher->sendAllNotifications(0);
+						fprintf( stdout, "Turn rollover for %s:%d\n", watcher->match->name, watcher->currentturn );
+						turnParser.writeTurn();
+						turnParser.newTurn( watcher->currentturn+1 );
+					}
+					watcher->currentturn = tn;
 					goto end;
 				}
 				// Search for new turn

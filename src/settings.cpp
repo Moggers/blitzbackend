@@ -64,7 +64,7 @@ namespace Server {
 		grabConfig( cf, "dbname", &dbname, canread );
 		grabConfig( cf, "jsondir", &jsondir, canread );
 		grabConfig( cf, "pretenderdir", &pretenderdir, canread );
-		grabConfig( cf, "emailserver_address", &pretenderdir, canread );
+		grabConfig( cf, "emailserver_address", &emailserver_address, canread );
 		grabConfig( cf, "emailuser", &emailuser, canread );
 		grabConfig( cf, "emailpass", &emailpass, canread );
 		grabConfig( cf, "domain", &domain, canread );
