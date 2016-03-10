@@ -42,7 +42,7 @@ namespace Server
 		} else if( hours == -1 ) {
 			stream << "Match " << cmatch->name << " is starting";
 		} else {
-			stream << "Then next turn for match " << cmatch->name << " is rolling over in " << hours << " hours, but you have not submitted yet. Please do so!";
+			stream << "The next turn for match " << cmatch->name << " is rolling over in " << hours << " hours, but you have not submitted yet. Please do so!";
 		}
 		stream << " You can connect to it using " << Server::Settings::domain << ":" << cmatch->port;
 		std::string subject = Poco::Net::MailMessage::encodeWord(stream.str(), "UTF-8");
