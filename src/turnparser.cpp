@@ -25,6 +25,9 @@ namespace Server
 		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
 		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
 		regex_set.push_back( std::regex(R"(.*([0-9]+) was conquered by ([0-9]+).*)"));
+		fname << ".txt";
+		this->log = fname.str();
+		std::ofstream logwriter( this->log, std::ofstream::out );
 	}
 
 	void TurnParser::newTurn( int turnN )
@@ -38,6 +41,8 @@ namespace Server
 		}
 		cur_battle.provid = -1;
 		std::cout << "New turn " << turnN << " writing to " << filename << "\n";
+		fname << ".log";
+		this->logwriter.open( fname.str(), std::ofstream::out );
 	}
 
 	void TurnParser::addProvinceOwnership( int nationid, int provid )
@@ -47,6 +52,7 @@ namespace Server
 
 	int TurnParser::parseLine( std::string line )
 	{
+		this->logwriter << line << '\n';
 		std::string sl(line);
 		std::smatch smatch;
 		if( std::regex_match( line, smatch, this->regex_set[3] ) ) {
@@ -84,6 +90,7 @@ namespace Server
 	void TurnParser::writeTurn( void )
 	{
 		std::cout << "Writing turn\n";
+		logwriter.close();
 		std::ofstream writer(filename, std::ofstream::out);
 		writer << root << std::endl;
 		writer.close();

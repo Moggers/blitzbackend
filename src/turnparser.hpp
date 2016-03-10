@@ -28,6 +28,8 @@ namespace Server
 		std::ifstream fileread;
 		std::string jsondir;
 		std::string filename;
+		std::string log;
+		std::ofstream logwriter;
 		turn_battle_t cur_battle;
 		std::vector<std::regex> regex_set;
 
