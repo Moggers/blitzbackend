@@ -35,8 +35,10 @@ namespace SQL
 		std::vector<Game::Nation*> * getNations( Game::Match * match );
 		void setTurnfileName( int nationid, const char * name );
 		std::vector<Server::emailrequest_t> * getEmailRequests( int match_id );
-		std::vector<Server::emailrequest_t> * getUniqueEmailRequests( int match_id );
-		void markTurnSubmitted( Game::Match * match, int pl );
+		std::vector<Server::emailrequest_t> * getStaleNotifications( int match_id );
+		void setSNTN( int id, int n );
+		void markTurnSubmitted( Game::Match * match, int pl ); // This uses nation id
+		int hasSubmittedTurn( Game::Match * match, int pl, int tn ); // This uses matchnation id
 
 		private:
 		MYSQL * m_con;

@@ -38,13 +38,13 @@ namespace Server
 	{
 		std::ostringstream stream;
 		if( hours == 0 ) {
-			stream << "New turn for match " << cmatch->name;
+			stream << "New turn for match." << cmatch->name;
 		} else if( hours == -1 ) {
 			stream << "Match " << cmatch->name << " is starting";
 		} else {
-			stream << "Next turn for match " << cmatch->name << " in " << hours << " hours";
+			stream << "Then next turn for match " << cmatch->name << " is rolling over in " << hours << " hours, but you have not submitted yet. Please do so!";
 		}
-		stream << ", you can connect to it using " << Server::Settings::domain << ":" << cmatch->port;
+		stream << " You can connect to it using " << Server::Settings::domain << ":" << cmatch->port;
 		std::string subject = Poco::Net::MailMessage::encodeWord(stream.str(), "UTF-8");
 		Poco::Net::MailMessage message;
 		std::ostringstream sendstream;

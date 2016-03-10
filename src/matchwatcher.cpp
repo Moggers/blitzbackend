@@ -215,11 +215,5 @@ namespace Server
 				}
 			}
 		}
-		if( type == 1 ) {
-			std::vector<emailrequest_t> * reqs = this->table->getUniqueEmailRequests( this->match->id );
-			for( emailrequest_t &req: *reqs ) {
-				sender.sendNotification( -1, req.address, this->match );
-			}
-		}
 	}
 }
