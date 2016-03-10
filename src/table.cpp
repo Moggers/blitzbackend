@@ -386,50 +386,78 @@ namespace SQL
 			fprintf( stdout, "Failed to update nation turn name %d\n", sqlerrno );
 		else
 			fprintf( stdout, "Updated nation (%d) turn name is now %s\n", nationid, name );
+		free( query );
 	}
 
 	std::vector<Server::emailrequest_t> * Table::getEmailRequests( int match_id )
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select hours,email from emailrequests where match_id=%lu", match_id );
+		sprintf( query, "select email,hours from emailrequests where match_id=%lu", match_id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Failed to retrieve notification requests %d\n", sqlerrno );
 		} else {
 			std::vector<Server::emailrequest_t> * vec = new std::vector<Server::emailrequest_t>();
 			MYSQL_RES * emailreqs = mysql_store_result( m_con );
-			if( emailreqs == NULL )
-				return NULL;
-			MYSQL_ROW emailrow;
-			while( (emailrow = mysql_fetch_row( emailreqs ) ) != NULL ) {
-				vec->push_back(Server::emailrequest_t{match_id, strdup(emailrow[1]), atoi(emailrow[0])});
+			if( emailreqs == NULL ) {
+			} else {
+				MYSQL_ROW emailrow;
+				while( (emailrow = mysql_fetch_row( emailreqs ) ) != NULL ) {
+					vec->push_back(Server::emailrequest_t{0, match_id, strdup(emailrow[0]), atoi(emailrow[1]),0,0,0});
+				}
+				mysql_free_result( emailreqs );
 			}
-			mysql_free_result( emailreqs );
+			free( query );
 			return vec;
 		}
 	}
 
-	std::vector<Server::emailrequest_t> * Table::getUniqueEmailRequests( int match_id )
+	std::vector<Server::emailrequest_t> * Table::getStaleNotifications( int match_id )
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select distinct email from emailrequests where match_id=%lu", match_id );
+		sprintf( query, "select e.id,e.match_id,email,hours,turn,matchnation_id,if(utc_timestamp>date_add((select lastturn from matches where id=e.match_id), interval (select hostinterval from matches where id=e.match_id)/60-e.hours hour),1,0) from emailrequests e where hours != 0 AND match_id=%lu;", match_id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
-			fprintf( stdout, "Failed to retrieve notification requests %d\n", sqlerrno );
+			fprintf( stdout, "Failed to request stale notifications\n" );
+			return NULL;
 		} else {
 			std::vector<Server::emailrequest_t> * vec = new std::vector<Server::emailrequest_t>();
 			MYSQL_RES * emailreqs = mysql_store_result( m_con );
-			if( emailreqs == NULL )
-				return NULL;
-			MYSQL_ROW emailrow;
-			while( (emailrow = mysql_fetch_row( emailreqs ) ) != NULL ) {
-				vec->push_back(Server::emailrequest_t{0, strdup(emailrow[0]), 0});
+			if( emailreqs == NULL ) {
+			} else {
+				MYSQL_ROW emailrow;
+				while( (emailrow = mysql_fetch_row( emailreqs ) ) != NULL ) {
+					char * address = (char*)calloc( 1024, sizeof( char ) );
+					strcpy( address, emailrow[2] );
+					vec->push_back(Server::emailrequest_t{
+						atoi(emailrow[0]),	// ID
+						atoi(emailrow[1]),	// Match ID
+						address,			// Address
+						atoi(emailrow[3]),	// Hours until host
+						atoi(emailrow[4]),	// Turn number
+						atoi(emailrow[5]),	// Matchnation ID
+						atoi(emailrow[6])});// Is it time to send
+				}
+				mysql_free_result( emailreqs );
 			}
-			mysql_free_result( emailreqs );
+			free( query );
 			return vec;
 		}
+	}
+
+	void Table::setSNTN( int id, int n )
+	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
+		char * query = (char*)calloc( 128, sizeof( char ) );
+		sprintf( query, "update emailrequests set turn=%d where id=%d", n, id );
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Failed to mark turn number in notification: %s\n", query );
+		}
+		free( query );
+		return;
 	}
 
 	void Table::markTurnSubmitted( Game::Match * match, int pl )
@@ -480,5 +508,30 @@ namespace SQL
 				fprintf( stdout, "Inserted new turn %d into match %s for player %d\n", turn_id, match->name, matchnation_id );
 			}
 		}
+	}
+	int Table::hasSubmittedTurn( Game::Match * match, int pl, int tn )
+	{
+		int ret = 0, sqlerrno;
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
+		char * query = (char*)calloc( 2048, sizeof( char ) );
+		sprintf( query, "select id from matchnationturns where matchnation_id=%d AND turn_id=(select id from turns where match_id=%lu AND tn=%d)", pl, match->id, tn );
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
+			fprintf( stdout, "Failed to check if there is a turn for %d in match %lu", pl, match->id );
+		} else {
+			MYSQL_RES * res = mysql_store_result( m_con );
+			if( res == NULL ) {
+				fprintf( stdout, "Failed to get res for turn check for %d in match %lu", pl, match->id );
+			} else {
+				MYSQL_ROW row = mysql_fetch_row( res );
+				if(  row == NULL ) {
+					ret = 0;
+				} else {
+					ret = 1;
+				}
+			}
+			mysql_free_result( res );
+		}
+		free( query );
+		return ret;
 	}
 }

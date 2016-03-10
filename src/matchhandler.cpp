@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
+#include <iostream>
 #include <string.h>
 #include "mod.hpp"
 #include <signal.h>
@@ -147,6 +148,24 @@ namespace Server
 			} else { // Otherwise
 				if( cmatch->status == 3 ) {  // We've already started it
 					cimatch = *cimatchi;
+					// Stale notifications
+					std::vector<Server::emailrequest_t> * vec = m_table->getStaleNotifications( cmatch->id );
+					int tn = m_table->getTurnNumber( cmatch );
+					Server::EmailSender sender;
+					for( emailrequest_t req: *vec ) {
+						if( tn > req.turn ) {
+							std::cout << "ay\n";
+							if( m_table->hasSubmittedTurn( cmatch, req.matchnation, tn ) ) {
+								fprintf( stdout, "Submitted turn so marked as don't notify\n" );
+								m_table->setSNTN( req.id, tn );
+							} else if( req.istime == 1 ) {
+								std::cout << "Sending notification of game " << cmatch->name << " to " << req.address << " because it is rolling within " << req.hours << " hours\n";
+								sender.sendNotification( req.hours, req.address, cmatch );
+								m_table->setSNTN( req.id, tn );
+							}
+						}
+					}
+					// Game end status
 					if( cimatch->watcher->mesg == 70 ) {
 						fprintf( stdout, "Match %s ended\n", cimatch->match->name );
 						cimatch->match->status = 70;

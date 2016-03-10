@@ -24,8 +24,12 @@ namespace Server
 	};
 
 	typedef struct emailrequest_s {
+		int id;
 		int match_id;
 		char * address;
 		int hours;
+		int turn;
+		int matchnation;
+		int istime;
 	} emailrequest_t;
 }
