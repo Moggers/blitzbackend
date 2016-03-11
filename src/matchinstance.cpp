@@ -36,6 +36,12 @@ namespace Server
 		system( com );
 		sprintf( com, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, this->match->mapid, this->match->imgName, Server::Settings::mappath_save );
 		system( com );
+		// Create location to send pretenders
+		sprintf( com, "%s/%s%lu", Server::Settings::pretenderdir, match->name, match->id );
+		// Create location to send turns
+		mkdir( com, 0777 );
+		sprintf( com, "%s/%s%lu", Server::Settings::jsondir, match->name, match->id );
+		mkdir( com, 0777 );
 		// and the mods
 		for( auto mod : *(this->match->mods) ) {
 			sprintf( com, "rsync -tr \"%s/%d/\" \"%s\"", Server::Settings::modpath_load, mod->m_id, Server::Settings::modpath_save );
