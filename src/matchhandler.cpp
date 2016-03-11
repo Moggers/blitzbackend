@@ -148,6 +148,14 @@ namespace Server
 			} else { // Otherwise
 				if( cmatch->status == 3 ) {  // We've already started it
 					cimatch = *cimatchi;
+					// Changed settings
+					if( cmatch->needsrestart ) {
+						cimatch->match->update( cmatch );
+						cimatch->restart();
+						m_table->updateMatchSettings( cimatch->match );
+						m_table->markRestarted(cimatch->match);
+						continue;
+					}
 					// Stale notifications
 					std::vector<Server::emailrequest_t> * vec = m_table->getStaleNotifications( cmatch->id );
 					int tn = m_table->getTurnNumber( cmatch );

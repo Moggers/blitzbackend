@@ -6,21 +6,6 @@
 
 namespace Game
 {
-	Match::Match( unsigned long id, int mapid, char * mapname, char * imgname, int age, char * name, int status, int port, int t1, int t2, int t3, int t4, int research, int renaming ) : id{id}, mapid{mapid}, status{status}, age{age}, port{port}, research{research}, renaming{renaming}
-	{
-		this->mapName = (char*)malloc( strlen( mapname ) );
-		strcpy( this->mapName, mapname );
-		this->imgName = (char*)malloc( strlen( imgname ) );
-		strcpy( this->imgName, imgname );
-		this->name = (char*)malloc( strlen( name ) );
-		strcpy( this->name, name );
-		this->t = (int*)calloc( 4, sizeof( int ) );
-		this->t[0] = t1;
-		this->t[1] = t2;
-		this->t[2] = t3;
-		this->t[3] = t4;
-	}
-
 	Match::Match( const MYSQL_ROW match, const MYSQL_ROW map, std::vector<Game::Mod*> * mods ) :
 		id{strtoul(match[0], NULL, 10 )},
 		mapid{atoi(match[1])},
@@ -33,7 +18,8 @@ namespace Game
 		hostday{atoi(match[14])},
 		hosthour{atoi(match[15])},
 		hostint{atoi(match[16])},
-		needsrestart{atoi(match[18])}
+		needsrestart{atoi(match[18])},
+		maxholdups{atoi(match[19])}
 	{
 		this->mapName = (char*)malloc( strlen( map[0] ) + 1 );
 		strcpy( this->mapName, map[0] );
@@ -61,7 +47,8 @@ namespace Game
 	hostday{match->hostday},
 	hosthour{match->hosthour},
 	hostint{match->hostint},
-	needsrestart{match->needsrestart}
+	needsrestart{match->needsrestart},
+	maxholdups{match->maxholdups}
 	{
 		this->mapName = (char*)calloc( 1024, sizeof( char ) );
 		this->imgName = (char*)calloc( 1024, sizeof( char ) );
@@ -107,7 +94,9 @@ namespace Game
 		if( this->hostint != 0 )
 			sprintf( str + strlen( str ), "--minutes %d ", this->hostint );
 		if( this->hosthour != 0 || this->hostday != 0 ) {
-			sprintf( str + strlen( str ), "--hosttime %d %d", this->hostday, this->hosthour );
+			sprintf( str + strlen( str ), "--hosttime %d %d ", this->hostday, this->hosthour );
+		} if( this->maxholdups != 0 ) {
+			sprintf( str + strlen( str ), "--maxholdups %d ", this->maxholdups );
 		}
 		sprintf( str + strlen( str ), "--renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
 			this->renaming,
@@ -136,6 +125,7 @@ namespace Game
 		this->t[1] = match->t[1];
 		this->t[2] = match->t[2];
 		this->t[3] = match->t[3];
+		this->maxholdups = match->maxholdups;
 		delete( match->mods );
 		match->mods = new std::vector<Mod*>();
 		for( auto m : *match->mods ) {
