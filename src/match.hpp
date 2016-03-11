@@ -35,6 +35,7 @@ namespace Game
 		int hosthour;
 		int hostint;
 		int needsrestart;
+		int maxholdups;
 		std::vector<Game::Mod*> * mods;
 		private:
 	};
