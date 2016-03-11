@@ -84,7 +84,6 @@ namespace Server
 				newline[0] = '\0'; // Mark the end of the line
 
 				std::string recvMessage( line );
-				turnParser.parseLine( recvMessage );
 				// Search for failure string
 				if( std::regex_match( recvMessage, match, watcher->regex_set[0] ) ) {
 					watcher->mesg = STATUS_FAILURE;
@@ -98,6 +97,7 @@ namespace Server
 				if( std::regex_match( recvMessage, match, watcher->regex_set[8] ) ) {
 					goto end;
 				}
+				turnParser.parseLine( recvMessage );
 				// Search for start string
 				if( std::regex_match( recvMessage, match, watcher->regex_set[1] ) ) {
 					int countdown = atoi(match[1].str().c_str());

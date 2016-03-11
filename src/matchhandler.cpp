@@ -154,7 +154,6 @@ namespace Server
 					Server::EmailSender sender;
 					for( emailrequest_t req: *vec ) {
 						if( tn > req.turn ) {
-							std::cout << "ay\n";
 							if( m_table->hasSubmittedTurn( cmatch, req.matchnation, tn ) ) {
 								fprintf( stdout, "Submitted turn so marked as don't notify\n" );
 								m_table->setSNTN( req.id, tn );

@@ -126,6 +126,9 @@ namespace Game
 	void Match::update( Match * match )
 	{
 		this->mapid = match->mapid;
+		free( this->mapName );
+		this->mapName = (char*)calloc( strlen(match->mapName)+1, sizeof(char));
+		strcpy( this->mapName, match->mapName );
 		this->research = match->research;
 		this->renaming = match->renaming;
 		this->clientstart = match->clientstart;
