@@ -10,13 +10,13 @@ namespace Server
 	{
 		std::ostringstream fname;
 		this->jsondir = jsondir;
+		mkdir( this->jsondir.c_str(), 0755 );
 		fname << this->jsondir << "/" << turnN << ".json";
 		this->filename = fname.str();
 		fileread = std::ifstream( fname.str() ); 
 		if( fileread.is_open() ) {
 			fileread >> root;
 		}
-		mkdir( this->jsondir.c_str(), 0755 );
 		cur_battle.provid = -1;
 		std::cout << "First (seen) turn " << turnN << " writing to " << filename << "\n";
 		regex_set.push_back( std::regex(R"(^nation ([0-9]+)  start land ([0-9]+).*)" ) );
