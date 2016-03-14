@@ -437,8 +437,8 @@ namespace SQL
 						atoi(emailrow[1]),	// Match ID
 						address,			// Address
 						atoi(emailrow[3]),	// Hours until host
-						satoi(emailrow[4]),	// Turn number
-						atoi(emailrow[5]),	// Matchnation ID
+						atoi(emailrow[4]),	// Turn number
+						satoi(emailrow[5]),	// Matchnation ID
 						atoi(emailrow[6])});// Is it time to send
 				}
 				mysql_free_result( emailreqs );
