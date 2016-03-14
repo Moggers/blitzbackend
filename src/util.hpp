@@ -14,11 +14,4 @@ int get_port( void );
 int get_specific_port( int port );
 int try_get_port( int port );
 
-int satoi( const char * val )
-{
-	if( val == 0 ) {
-		return -1;
-	} else {
-		return atoi( val );
-	}
-}
+int satoi( const char * val );

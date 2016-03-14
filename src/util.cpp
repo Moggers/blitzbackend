@@ -148,3 +148,12 @@ int try_get_port( int port )
 	freeaddrinfo( res );
 	return port;
 }
+
+int satoi( const char * val )
+{
+	if( val == 0 ) {
+		return -1;
+	} else {
+		return atoi( val );
+	}
+}
