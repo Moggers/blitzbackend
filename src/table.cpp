@@ -394,10 +394,11 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select email,hours from emailrequests where match_id=%lu", match_id );
+		sprintf( query, "select email from emailrequests where match_id=%d AND hours=0", match_id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Failed to retrieve notification requests %d\n", sqlerrno );
+			return NULL;
 		} else {
 			std::vector<Server::emailrequest_t> * vec = new std::vector<Server::emailrequest_t>();
 			MYSQL_RES * emailreqs = mysql_store_result( m_con );
@@ -405,7 +406,7 @@ namespace SQL
 			} else {
 				MYSQL_ROW emailrow;
 				while( (emailrow = mysql_fetch_row( emailreqs ) ) != NULL ) {
-					vec->push_back(Server::emailrequest_t{0, match_id, strdup(emailrow[0]), atoi(emailrow[1]),0,0,0});
+					vec->push_back(Server::emailrequest_t{0, match_id, strdup(emailrow[0]), 0,0,0,0});
 				}
 				mysql_free_result( emailreqs );
 			}

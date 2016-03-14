@@ -1,4 +1,4 @@
-#include <unistd.h>
+ AND hours=0#include <unistd.h>
 #include <sys/wait.h>
 #include <iostream>
 #include <string.h>

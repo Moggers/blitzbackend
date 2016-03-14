@@ -40,7 +40,7 @@ namespace Server
 		if( hours == 0 ) {
 			stream << "New turn for match." << cmatch->name;
 		} else if( hours == -1 ) {
-			stream << "Match " << cmatch->name << " is starting";
+			stream << "Match " << cmatch->name << " is starting.";
 		} else {
 			stream << "The next turn for match " << cmatch->name << " is rolling over in " << hours << " hours, but you have not submitted yet. Please do so!";
 		}

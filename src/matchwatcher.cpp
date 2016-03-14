@@ -104,7 +104,7 @@ namespace Server
 					if( countdown % 5 == 0 ) {
 						watcher->mesg = 40 + countdown; 
 					} if( countdown == 0 ) {
-						watcher->sendAllNotifications(1);
+						watcher->sendAllNotifications(-1);
 					}
 					goto end;
 				}
@@ -153,7 +153,6 @@ namespace Server
 				if( std::regex_match( recvMessage, match, watcher->regex_set[6] ) ) {
 					watcher->table->addTurn( watcher->match, watcher->currentturn+1 );
 					watcher->table->updateTimestamp( watcher->match );
-					watcher->sendAllNotifications(0);
 					fprintf( stdout, "Turn rollover for %s:%d\n", watcher->match->name, watcher->currentturn );
 					turnParser.writeTurn();
 					turnParser.newTurn( watcher->currentturn+1 );
@@ -197,12 +196,10 @@ namespace Server
 	{
 		std::cout << "Sending notifications for game " << this->match->name << '\n';
 		Server::EmailSender sender;
-		if( type == 0 ){
-			std::vector<emailrequest_t> * reqs = this->table->getEmailRequests( this->match->id );
-			for( emailrequest_t &req: *reqs ) {
-				if( req.hours == 0 ) {
-					sender.sendNotification( 0, req.address, this->match );
-				}
+		std::vector<emailrequest_t> * reqs = this->table->getEmailRequests( this->match->id );
+		for( emailrequest_t &req: *reqs ) {
+			if( req.hours == 0 ) {
+				sender.sendNotification( type, req.address, this->match );
 			}
 		}
 	}
