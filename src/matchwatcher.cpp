@@ -43,7 +43,7 @@ namespace Server
 	void* MatchWatcher::watchCallback( void* arg )
 	{
 		MatchWatcher * watcher = (MatchWatcher*)arg;
-		char * buff = (char*)calloc( 4096, sizeof( char ) );
+		char * buff = (char*)calloc( 65536, sizeof( char ) );
 		char * line = NULL;
 		char * newline = 0;
 		int nbytes;
@@ -67,7 +67,7 @@ namespace Server
 				return NULL;
 			}
 			if( stillreading  == 0 ) { // Are we done reading? (Was the last attempt to grab a line incomplete?)
-				nbytes = read( watcher->proc->from_child, buff+strlen(buff), 4090 ); // Grab the new data (insert it into strlen(buff) incase there's already half a line left)
+				nbytes = read( watcher->proc->from_child, buff+strlen(buff), 65535 ); // Grab the new data (insert it into strlen(buff) incase there's already half a line left)
 				if( nbytes == -1 ) {
 					usleep( 500000 );
 					continue;
@@ -77,7 +77,7 @@ namespace Server
 			std::lock_guard<std::mutex> guard(watcher->lock);
 			newline = strchr( line, '\n' ); // Find the end of line
 			if( newline == NULL ) { // If we couldn't find a full line copy the half finished line back to the buffer and mark the data as done
-				strcpy( buff, line-1 );
+				strcpy( buff, line );
 				stillreading = 0; 
 			} else {
 				stillreading = 1;
@@ -115,16 +115,6 @@ namespace Server
 					if( watcher->table->checkPlayerPresent( watcher->match, nation ) == 0 ) {
 						watcher->table->addNationToMatch( watcher->match, nation );
 						fprintf( stdout, "Added nation %s to match %s(%lu)\n", nation->name, watcher->match->name, watcher->match->id );
-						// THE FOLLOWING IS MEANT TO MARK A PRETENDER AS READONLY TO PREVENT OVERWRITING OTHERS' WITH YOUR OWN
-						// IT SIMPLY CAUSES DOM4 TO CRASH DUE TO BEING UNABLE TO WRITE TO THE FILE
-						/*std::stringstream path;
-						path << Server::Settings::savepath << "/" << watcher->match->name << watcher->match->id << "/" << watcher->table->getNation(nationid)->turnname << ".2h";
-						fprintf( stdout, "Found the pretender name, marking him as readonly now at %s\n", path.str().c_str() );
-						if( chmod( path.str().c_str(), 0000 ) != 0 ) {
-							fprintf( stdout, "Failed to mark .2h as read only %d\n", errno );
-						} else {
-							fprintf( stdout, "Done\n" );
-						} */
 					}
 					free( nation );
 					goto end;
