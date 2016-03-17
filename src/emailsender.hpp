@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Poco/Net/SMTPClientSession.h>
 #include <Poco/Net/SecureSMTPClientSession.h>
 #include <Poco/Net/MailMessage.h>
@@ -7,7 +8,9 @@
 #include <Poco/Net/AcceptCertificateHandler.h>
 #include <Poco/Net/Context.h>
 #include <Poco/Net/SSLManager.h>
+#include <Poco/Net/SecureStreamSocket.h>
 #include "match.hpp"
+#include <mutex>
 namespace Server
 {
 	class EmailSender
@@ -18,9 +21,10 @@ namespace Server
 		void sendNotification( int hours, const char * address, Game::Match * cmatch );
 		
 		private:
-		Poco::Net::SecureSMTPClientSession session;
+		Poco::Net::SecureSMTPClientSession * session;
+		Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrCert;
 		Poco::Net::Context::Ptr ptrContext;
-		Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> ptrHandler;
+		Poco::Net::SecureStreamSocket * ptrSSLSocket;
 	};
 
 	typedef struct emailrequest_s {

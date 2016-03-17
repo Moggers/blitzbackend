@@ -39,6 +39,6 @@ namespace Server
 		// List of servers
 		std::vector<Server::MatchInstance*> m_matches;
 		// Email connection
-		EmailSender emailSender;
+		EmailSender * emailSender;
 	};
 }

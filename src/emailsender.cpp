@@ -6,31 +6,20 @@
 
 namespace Server
 {
-	EmailSender::EmailSender( void ): session{Poco::Net::SecureSMTPClientSession("blitzserver.net")}
+	EmailSender::EmailSender( void )
 	{
 		try {
-			session.open();
 			Poco::Net::initializeSSL();
-			ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
+			// Create memes
+			ptrCert = new Poco::Net::AcceptCertificateHandler(false);
 			ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
-			Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
-			session.login();
-		} catch( Poco::Net::NetException &e ) {
-			std::cout << "Threw exception trying to contact mail server: " <<e.message() << '\n';
-			return;
-		}
-		try {
-			if( session.startTLS(ptrContext) ) {
-				session.login( Poco::Net::SecureSMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass );
-			} else {
-				fprintf( stdout, "Failed to open TLS connection\n" );
-			}
-			fprintf( stdout, "Connected to email server\n" );
-			return;
-		} catch( Poco::Net::NetException &e ) {
-			std::cout << " Threw exception trying to open TLS connection: " << e.message() << '\n';
-			return;
-		} catch( Poco::IOException &e ) {
+			Poco::Net::SSLManager::instance().initializeClient(0, ptrCert, ptrContext);
+			// Connect
+			ptrSSLSocket = new Poco::Net::SecureStreamSocket( ptrContext );
+			ptrSSLSocket->connect(Poco::Net::SocketAddress( Server::Settings::emailserver_address, 465 ));
+			session = new Poco::Net::SecureSMTPClientSession( *ptrSSLSocket );
+			session->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass);
+		} catch( Poco::Exception &e ) {
 			std::cout << " Threw IO exception trying to open TLS connection: " << e.message() << '\n';
 			return;
 		}
@@ -38,7 +27,8 @@ namespace Server
 
 	EmailSender::~EmailSender( void )
 	{
-		session.close();
+		session->close();
+		Poco::Net::uninitializeSSL();
 	}
 	void EmailSender::sendNotification( int hours, const char * address, Game::Match * cmatch )
 	{
@@ -62,8 +52,7 @@ namespace Server
 		message.setContent( stream.str(), Poco::Net::MailMessage::ENCODING_8BIT );
 
 		try {
-			session.login();
-			session.sendMessage(message);
+			session->sendMessage(message);
 			return;
 		} catch( Poco::Net::NetException &e ) {
 			std::cout << "Failed to send turn update to " << address << ": " << e.message() << '\n';
