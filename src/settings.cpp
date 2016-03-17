@@ -19,6 +19,7 @@ namespace Server {
 	const char * Settings::emailuser;
 	const char * Settings::emailpass;
 	const char * Settings::domain;
+	const char * Settings::masterpass;
 	config_t * Settings::cf;
 
 	void Settings::grabConfig( config_t * cf, const char * name, const char ** dest, int canread )
@@ -68,6 +69,7 @@ namespace Server {
 		grabConfig( cf, "emailuser", &emailuser, canread );
 		grabConfig( cf, "emailpass", &emailpass, canread );
 		grabConfig( cf, "domain", &domain, canread );
+		grabConfig( cf, "masterpass", &masterpass, canread );
 		if( config_write_file( cf, configfile ) == CONFIG_FALSE ) {
 			fprintf( stdout, "Failed to write config\n" );
 		}

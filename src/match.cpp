@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "emailsender.hpp"
+#include "settings.hpp"
 
 namespace Game
 {
@@ -98,7 +99,8 @@ namespace Game
 		} if( this->maxholdups != 0 ) {
 			sprintf( str + strlen( str ), "--maxholdups %d ", this->maxholdups );
 		}
-		sprintf( str + strlen( str ), "--maxholdups 1 --renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
+		sprintf( str + strlen( str ), "--masterpass %s --maxholdups 1 --renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
+			Server::Settings::masterpass,
 			this->renaming,
 			this->research,
 			this->age, 

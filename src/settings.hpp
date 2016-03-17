@@ -20,6 +20,7 @@ namespace Server
 		static const char * emailuser;
 		static const char * emailpass;
 		static const char * domain;
+		static const char * masterpass;
 		static int loadSettings( const char * configpath );
 		static void destroy( void );
 		private:
