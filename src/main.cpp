@@ -16,7 +16,6 @@ int main( int argc, char ** argv )
 	sprintf( confpath, "%s/.config/blitzbackend/", getenv( "HOME" ) );
 	Server::Settings::loadSettings( confpath );
 	Server::MatchHandler * matchHandler = new Server::MatchHandler();
-	Server::EmailSender sender;
 	signal( SIGINT, matchHandler->shutdown_callback );
 	while( !sleep(1) ) {
 		matchHandler->startNewServers();

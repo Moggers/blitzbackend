@@ -18,7 +18,7 @@
 
 namespace Server
 {
-	MatchWatcher::MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match ): proc{proc}, table{table}, match{match}
+	MatchWatcher::MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match, EmailSender * emailSender ): proc{proc}, table{table}, match{match}, emailSender{emailSender}
 	{
 		mesg = 0;
 		playerbitmap = 0;
@@ -195,11 +195,10 @@ namespace Server
 	void MatchWatcher::sendAllNotifications( int type )
 	{
 		std::cout << "Sending notifications for game " << this->match->name << '\n';
-		Server::EmailSender sender;
 		std::vector<emailrequest_t> * reqs = this->table->getEmailRequests( this->match->id );
 		for( emailrequest_t &req: *reqs ) {
 			if( req.hours == 0 ) {
-				sender.sendNotification( type, req.address, this->match );
+				emailSender->sendNotification( type, req.address, this->match );
 			}
 		}
 	}

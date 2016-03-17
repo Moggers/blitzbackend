@@ -24,9 +24,10 @@ namespace Server
 		public:
 		int64_t playerbitmap;
 		int port;
-		MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match );
+		MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match, EmailSender * emailSender );
 		void destroyWatcher( void );
 		int mesg;
+		EmailSender * emailSender;
 
 		void sendAllNotifications( int type );
 	};

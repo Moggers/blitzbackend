@@ -24,6 +24,7 @@ namespace Server
 	MatchHandler::MatchHandler( void )
 	{
 		this->m_table = new SQL::Table();
+		this->emailSender = EmailSender();
 		WhyDoIHaveToDoThis = this;
 	}
 
@@ -117,7 +118,7 @@ namespace Server
 				continue;
 			}
 			// Spawn
-			Server::MatchInstance * inst = new MatchInstance( cmatch, m_table, 0 );
+			Server::MatchInstance * inst = new MatchInstance( cmatch, m_table, 0, &emailSender );
 			m_matches.push_back( inst );
 			fprintf( stdout, "Started server on port %d.\n", inst->match->port );
 			inst->match->status = 1;
@@ -159,7 +160,6 @@ namespace Server
 					// Stale notifications
 					std::vector<Server::emailrequest_t> * vec = m_table->getStaleNotifications( cmatch->id );
 					int tn = m_table->getTurnNumber( cmatch );
-					Server::EmailSender sender;
 					for( emailrequest_t req: *vec ) {
 						if( tn > req.turn ) {
 							if( m_table->hasSubmittedTurn( cmatch, req.matchnation, tn ) ) {
@@ -167,7 +167,7 @@ namespace Server
 								m_table->setSNTN( req.id, tn );
 							} else if( req.istime == 1 ) {
 								std::cout << "Sending notification of game " << cmatch->name << " to " << req.address << " because it is rolling within " << req.hours << " hours\n";
-								sender.sendNotification( req.hours, req.address, cmatch );
+								emailSender.sendNotification( req.hours, req.address, cmatch );
 								m_table->setSNTN( req.id, tn );
 							}
 						}
@@ -193,7 +193,7 @@ namespace Server
 				}
 				fprintf( stdout, "I found a game that needed to be started so I killed the lobby\n" );
 			}
-			Server::MatchInstance * inst = new MatchInstance( cmatch, m_table, 0 );
+			Server::MatchInstance * inst = new MatchInstance( cmatch, m_table, 0, &emailSender );
 			m_matches.push_back( inst );
 			fprintf( stdout, "Started server on port %d.\n", inst->match->port );
 			inst->match->status = 3;

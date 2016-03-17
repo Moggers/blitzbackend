@@ -4,6 +4,7 @@
 #include "matchwatcher.hpp"
 #include "table.hpp"
 #include <stdio.h>
+#include "emailsender.hpp"
 namespace Server
 {
 	static int STATE_LOBBY = 0;
@@ -15,8 +16,7 @@ namespace Server
 		Game::Match * match;
 		popen2_t * process;
 		SQL::Table * m_table;
-		MatchInstance( popen2_t * process, Game::Match * match, SQL::Table * table );
-		MatchInstance( Game::Match * match, SQL::Table * table, int state );
+		MatchInstance( Game::Match * match, SQL::Table * table, int state, EmailSender * emailSender );
 		MatchInstance( void );
 		int shutdown( void );
 		void restart( void );
@@ -24,5 +24,8 @@ namespace Server
 		void allowTurnChanges();
 		void moveInTurns();
 		Server::MatchWatcher * watcher;
+
+		private:
+		MatchInstance( popen2_t * process, Game::Match * match, SQL::Table * table, EmailSender * emailSender );
 	};
 }

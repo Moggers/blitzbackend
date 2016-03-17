@@ -38,5 +38,7 @@ namespace Server
 		SQL::Table * m_table;
 		// List of servers
 		std::vector<Server::MatchInstance*> m_matches;
+		// Email connection
+		EmailSender emailSender;
 	};
 }

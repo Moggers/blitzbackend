@@ -17,7 +17,7 @@ namespace Server
 		process = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 		match = NULL;
 	}
-	MatchInstance::MatchInstance( Game::Match * match, SQL::Table * table, int state )
+	MatchInstance::MatchInstance( Game::Match * match, SQL::Table * table, int state, EmailSender * emailSender )
 	{
 		this->m_table = table;
 		// Allocate command buffer 
@@ -53,17 +53,17 @@ namespace Server
 		this->process = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 		popen2( com, this->process );
 		// Create the watcher
-		this->watcher = new MatchWatcher( this->process, table, this->match );
+		this->watcher = new MatchWatcher( this->process, table, this->match, emailSender );
 		this->watcher->port = this->match->port;
 		// Free resources
 		free( com );
 		free( confstr );
 	}
-	MatchInstance::MatchInstance( popen2_t * process, Game::Match * match, SQL::Table * table ) :process{process}
+	MatchInstance::MatchInstance( popen2_t * process, Game::Match * match, SQL::Table * table, EmailSender * emailSender ) :process{process}
 	{
 		this->match = (Game::Match*)calloc( 1, sizeof( Game::Match ) );
 		memcpy( this->match, match, sizeof( Game::Match ) );
-		watcher = new MatchWatcher( process, table, match );
+		watcher = new MatchWatcher( process, table, match, emailSender );
 		watcher->port = match->port;
 	}
 	int MatchInstance::checkTimer( Game::Match * match ) {
@@ -96,6 +96,7 @@ namespace Server
 	void MatchInstance::restart( void )
 	{
 		fprintf( stdout, "Restarting sever %s\n", match->name );
+		EmailSender * storesender = this->watcher->emailSender;
 		this->watcher->destroyWatcher();
 		int retcode = kill( process->child_pid, SIGTERM );
 		waitpid( process->child_pid, NULL, 0 );
@@ -105,7 +106,7 @@ namespace Server
 		popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
 		popen2( com, proc );
 		this->process = proc;
-		this->watcher = new MatchWatcher( this->process, m_table, this->match );
+		this->watcher = new MatchWatcher( this->process, m_table, this->match, storesender);
 		this->watcher->port = this->match->port;
 	}
 

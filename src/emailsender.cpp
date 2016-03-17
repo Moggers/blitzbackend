@@ -15,17 +15,23 @@ namespace Server
 			ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 			Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
 			session.login();
-			if( session.startTLS() ) {
+		} catch( Poco::Net::NetException &e ) {
+			std::cout << "Threw exception trying to contact mail server: " <<e.message() << '\n';
+			return;
+		}
+		try {
+			if( session.startTLS(ptrContext) ) {
 				session.login( Poco::Net::SecureSMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass );
 			} else {
 				fprintf( stdout, "Failed to open TLS connection\n" );
 			}
+			fprintf( stdout, "Connected to email server\n" );
 			return;
 		} catch( Poco::Net::NetException &e ) {
-			std::cout << e.message() << '\n';
+			std::cout << " Threw exception trying to open TLS connection: " << e.message() << '\n';
 			return;
-		} catch( Poco::IllegalStateException &e ) {
-			std::cout << e.message() << '\n';
+		} catch( Poco::IOException &e ) {
+			std::cout << " Threw IO exception trying to open TLS connection: " << e.message() << '\n';
 			return;
 		}
 	}
