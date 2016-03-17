@@ -8,12 +8,12 @@ namespace Server
 {
 	EmailSender::EmailSender( void ): session{Poco::Net::SecureSMTPClientSession("blitzserver.net")}
 	{
-		session.open();
-		Poco::Net::initializeSSL();
-		ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
-		ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
-		Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
 		try {
+			session.open();
+			Poco::Net::initializeSSL();
+			ptrHandler = new Poco::Net::AcceptCertificateHandler(false);
+			ptrContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "", Poco::Net::Context::VERIFY_RELAXED, 9, true, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+			Poco::Net::SSLManager::instance().initializeClient(0, ptrHandler, ptrContext);
 			session.login();
 			if( session.startTLS() ) {
 				session.login( Poco::Net::SecureSMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass );
