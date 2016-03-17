@@ -28,6 +28,8 @@ namespace Game
 		strcpy( this->imgName, map[1] );
 		this->name = (char*)malloc( strlen( match[3] ) + 1 );
 		strcpy( this->name, match[3] );
+		this->masterpass = (char*)malloc( strlen( match[20] ) + 1 );
+		strcpy( this->masterpass, match[20] );
 		this->t = (int*)calloc( 4, sizeof( int ) );
 		this->t[0] = atoi(match[6]);
 		this->t[1] = atoi(match[7]);
@@ -98,9 +100,12 @@ namespace Game
 			sprintf( str + strlen( str ), "--hosttime %d %d ", this->hostday, this->hosthour );
 		} if( this->maxholdups != 0 ) {
 			sprintf( str + strlen( str ), "--maxholdups %d ", this->maxholdups );
+		} if( this->masterpass != NULL ) {
+			sprintf( str + strlen( str ), "--masterpass %s ", this->masterpass );
+		} else {
+			sprintf( str + strlen( str ), "--masterpass %s ", Server::Settings::masterpass );
 		}
-		sprintf( str + strlen( str ), "--masterpass %s --maxholdups 1 --renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
-			Server::Settings::masterpass,
+		sprintf( str + strlen( str ), "--maxholdups 1 --renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
 			this->renaming,
 			this->research,
 			this->age, 
