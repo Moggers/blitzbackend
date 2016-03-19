@@ -28,6 +28,7 @@ namespace Server
 		lastn = -1;
 		kill = 0;
 		pollproc = (popen2_t*)calloc( 1, sizeof( popen2_t) );
+		this->currentturn = table->getTurnNumber( match );
 		watchThread = std::thread( watchCallback, this );
 		// Create turn parser
 		std::stringstream stream;
