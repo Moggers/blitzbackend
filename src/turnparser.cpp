@@ -6,33 +6,43 @@
 
 namespace Server
 {
-	TurnParser::TurnParser( std::string jsondir, int turnN )
+	TurnParser::TurnParser( void )
 	{
-		std::ostringstream fname;
-		this->jsondir = jsondir;
-		mkdir( this->jsondir.c_str(), 0755 );
-		fname << this->jsondir << "/" << turnN << ".json";
-		this->filename = fname.str();
-		fileread = std::ifstream( fname.str() ); 
-		if( fileread.is_open() ) {
-			fileread >> root;
-		}
 		cur_battle.provid = -1;
-		std::cout << "First (seen) turn " << turnN << " writing to " << filename << "\n";
-		regex_set.push_back( std::regex(R"(^nation ([0-9]+)  start land ([0-9]+).*)" ) );
-		regex_set.push_back( std::regex(R"(^ *([0-9]+) vs ([0-9]+) in lnr ([0-9]+).*)" ) );
-		regex_set.push_back( std::regex(R"(^_{5}The winner is ([0-9]+)_{7}.*)" ) );
-		regex_set.push_back( std::regex(R"(.*packet.*)" ) );
-		regex_set.push_back( std::regex(R"(.*No 2h for.*)" ) );
-		regex_set.push_back( std::regex(R"(.*([0-9]+) was conquered by ([0-9]+).*)"));
-		fname << ".txt";
-		this->log = fname.str();
-		std::ofstream logwriter( this->log, std::ofstream::out );
+		batcher.addCheck(R"(.*packet.*)", [](const std::smatch &match){});
+		batcher.addCheck(R"(.*No 2h for.*)", [](const std::smatch &match){});
+		batcher.addCheck(R"(^nation ([0-9]+)  start land ([0-9]+).*)", [this](const std::smatch &match){
+			std::cout << "Nation " << match[1].str() << " starts in " << match[2].str() << "\n";
+			addProvinceOwnership( atoi(match[1].str().c_str()),atoi(match[2].str().c_str()) );
+		});
+		batcher.addCheck(R"(^ *([0-9]+) vs ([0-9]+) in lnr ([0-9]+).*)", [this](const std::smatch &match){
+			std::cout << "Battle starting in " << match[3].str() << " between " << match[1].str() << " and " <<match[2].str() << "\n";
+			cur_battle.nationa = atoi(match[1].str().c_str());
+			cur_battle.nationb = atoi(match[2].str().c_str());
+			cur_battle.provid = atoi(match[3].str().c_str());
+		});
+		batcher.addCheck(R"(^_{5}The winner is ([0-9]+)_{7}.*)", [this](const std::smatch &match){
+			if( cur_battle.provid != -1 ) {
+				addProvinceOwnership( atoi(match[1].str().c_str()), cur_battle.provid );
+				std::cout << "The winner was " << match[1].str() << "\n";
+				cur_battle.provid = -1;
+			}
+		});
+		batcher.addCheck(R"(.*([0-9]+) was conquered by ([0-9]+).*)", [this](const std::smatch &match){
+			addProvinceOwnership( atoi(match[2].str().c_str()), atoi(match[1].str().c_str()));
+		});
+	}
+
+	void TurnParser::newTurn( const std::string &jsondir, int turnN )
+	{
+		this->jsondir = std::string(jsondir);
+		this->newTurn( turnN );
 	}
 
 	void TurnParser::newTurn( int turnN )
 	{
 		std::ostringstream fname;
+		mkdir( this->jsondir.c_str(), 0775 );
 		fname << this->jsondir << "/" << turnN << ".json";
 		this->filename = fname.str();
 		fileread = std::ifstream( fname.str() ); 
@@ -53,37 +63,7 @@ namespace Server
 	int TurnParser::parseLine( std::string line )
 	{
 		this->logwriter << line << '\n';
-		std::string sl(line);
-		std::smatch smatch;
-		if( std::regex_match( line, smatch, this->regex_set[3] ) ) {
-			return 0;
-		}
-		if( std::regex_match( line, smatch, this->regex_set[4] ) ) {
-			return 0;
-		}
-		if( std::regex_match( sl, smatch, this->regex_set[0] )) {
-			std::cout << "Nation " << smatch[1].str() << " starts in " << smatch[2].str() << "\n";
-			addProvinceOwnership( atoi(smatch[1].str().c_str()),atoi(smatch[2].str().c_str()) );
-			return 0;
-		}
-		if( std::regex_match( sl, smatch, this->regex_set[1] ) ) {
-			std::cout << "Battle starting in " << smatch[3].str() << " between " << smatch[1].str() << " and " <<smatch[2].str() << "\n";
-			cur_battle.nationa = atoi(smatch[1].str().c_str());
-			cur_battle.nationb = atoi(smatch[2].str().c_str());
-			cur_battle.provid = atoi(smatch[3].str().c_str());
-			return 0;
-		}
-		if( std::regex_match( sl, smatch, this->regex_set[5] ) ) {
-			addProvinceOwnership( atoi(smatch[2].str().c_str()), atoi(smatch[1].str().c_str()));
-			return 0;
-		}
-		if( cur_battle.provid != -1 ) {
-			if( std::regex_match( sl, smatch, this->regex_set[2] ) )  {
-				addProvinceOwnership( atoi(smatch[1].str().c_str()), cur_battle.provid );
-				std::cout << "The winner was " << smatch[1].str() << "\n";
-				cur_battle.provid = -1;
-			}
-		}
+		batcher.checkString( line );
 		return 1;
 	}
 
