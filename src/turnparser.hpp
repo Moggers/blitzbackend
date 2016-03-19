@@ -1,5 +1,6 @@
 #pragma once
 #include <json/json.h>
+#include "regexbatcher.hpp"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -16,12 +17,13 @@ namespace Server
 	class TurnParser
 	{
 		public:
-		TurnParser( std::string turnfile, int turnN );
+		TurnParser( void );
 
 		int parseLine( std::string line );
 		int changeTurn( int turn );
 		void writeTurn( void );
 		void newTurn( int turnN );
+		void newTurn( const std::string &jsondir, int turnN );
 		
 		private:
 		Json::Value root;
@@ -32,6 +34,7 @@ namespace Server
 		std::ofstream logwriter;
 		turn_battle_t cur_battle;
 		std::vector<std::regex> regex_set;
+		RegexBatcher batcher;
 
 		void addProvinceOwnership( int nationid, int provid );
 	};
