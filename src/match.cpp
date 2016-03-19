@@ -28,8 +28,10 @@ namespace Game
 		strcpy( this->imgName, map[1] );
 		this->name = (char*)malloc( strlen( match[3] ) + 1 );
 		strcpy( this->name, match[3] );
-		this->masterpass = (char*)malloc( strlen( match[20] ) + 1 );
-		strcpy( this->masterpass, match[20] );
+		if( strlen( match[20] ) != 0 ) {
+			this->masterpass = (char*)malloc( strlen( match[20] ) + 1 );
+			strcpy( this->masterpass, match[20] );
+		} else { this->masterpass = 0; }
 		this->t = (int*)calloc( 4, sizeof( int ) );
 		this->t[0] = atoi(match[6]);
 		this->t[1] = atoi(match[7]);

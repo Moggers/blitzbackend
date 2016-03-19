@@ -1,7 +1,6 @@
 #include <string>
 #include <sys/stat.h>
 #include <regex>
-#include "turnparser.hpp"
 #include <string.h>
 #include "nation.hpp"
 #include "settings.hpp"
@@ -18,14 +17,17 @@
 
 namespace Server
 {
-	MatchWatcher::MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match, EmailSender * emailSender ): proc{proc}, table{table}, match{match}, emailSender{emailSender}
+	MatchWatcher::MatchWatcher( popen2_t * proc, SQL::Table * table, Game::Match * match, EmailSender * emailSender ): proc{proc}, table{table}, match{match}, emailSender{emailSender}, currentturn{table->getTurnNumber( match )},
+	turnParser( [](Game::Match * match, int turn) -> Server::TurnParser* {
+		std::ostringstream stream;
+		stream << Server::Settings::jsondir << "/" << match->id << "/";
+		return new TurnParser( stream.str(), turn);}(match, this->currentturn))
 	{
 		mesg = 0;
 		playerbitmap = 0;
 		lastn = -1;
 		kill = 0;
 		pollproc = (popen2_t*)calloc( 1, sizeof( popen2_t) );
-		currentturn = table->getTurnNumber( match );
 		watchThread = std::thread( watchCallback, this );
 		regex_set.push_back( std::regex(".*nick fel.*" ) );
 		regex_set.push_back( std::regex( ".* ([0-9]+) seconds.*" ) );
@@ -51,13 +53,6 @@ namespace Server
 		int stillreading = 0;
 		int turn;
 		std::smatch match;
-
-		char * matchdir = (char*)calloc( 1024, sizeof(char) );
-		sprintf( matchdir, "%s/%lu/", Server::Settings::jsondir, watcher->match->id );
-		std::ostringstream stream;
-		stream << Server::Settings::jsondir << watcher->match->id << "/";
-		Server::TurnParser turnParser(matchdir, watcher->currentturn);
-		free( matchdir );
 
 		fcntl(watcher->proc->from_child, F_SETFL, flags | O_NONBLOCK);
 		while( !watcher->kill ) { // If we're not meant to close
@@ -97,7 +92,9 @@ namespace Server
 				if( std::regex_match( recvMessage, match, watcher->regex_set[8] ) ) {
 					goto end;
 				}
-				turnParser.parseLine( recvMessage );
+
+				// Hand off to turn parser
+				watcher->turnParser->parseLine( recvMessage );
 				// Search for start string
 				if( std::regex_match( recvMessage, match, watcher->regex_set[1] ) ) {
 					int countdown = atoi(match[1].str().c_str());
@@ -123,6 +120,7 @@ namespace Server
 				//if( std::regex_match( recvMessage, match, std::regex(R"(.*Load newlord.*)" ) ) ) {
 					fprintf( stdout, "Found mention of 2h: %s\n", recvMessage.c_str() );
 					watcher->lastn = atoi(match[1].str().c_str());
+					goto end;
 				}
 				// Search for nation 2h name (but only if we know a nation just joined)
 				if( watcher->lastn != -1 ) {
@@ -143,8 +141,8 @@ namespace Server
 						watcher->table->updateTimestamp( watcher->match );
 						watcher->sendAllNotifications(0);
 						fprintf( stdout, "Turn rollover for %s:%d\n", watcher->match->name, watcher->currentturn );
-						turnParser.writeTurn();
-						turnParser.newTurn( watcher->currentturn+1 );
+						watcher->turnParser->writeTurn();
+						watcher->turnParser->newTurn( watcher->currentturn+1 );
 					}
 					watcher->currentturn = tn;
 					goto end;
@@ -154,8 +152,8 @@ namespace Server
 					watcher->table->addTurn( watcher->match, watcher->currentturn+1 );
 					watcher->table->updateTimestamp( watcher->match );
 					fprintf( stdout, "Turn rollover for %s:%d\n", watcher->match->name, watcher->currentturn );
-					turnParser.writeTurn();
-					turnParser.newTurn( watcher->currentturn+1 );
+					watcher->turnParser->writeTurn();
+					watcher->turnParser->newTurn( watcher->currentturn+1 );
 					goto end;
 				}
 				// Search for received turn
@@ -164,6 +162,7 @@ namespace Server
 				if( std::regex_match( recvMessage, match, watcher->regex_set[9] ) ) {
 					fprintf( stdout, "Received turn on match %s for player %d\n", watcher->match->name, atoi(match[1].str().c_str()) );
 					watcher->table->markTurnSubmitted( watcher->match, atoi(match[1].str().c_str()) );
+					goto end;
 				}
 
 				// Find end of game

@@ -53,7 +53,6 @@ namespace Server
 	int TurnParser::parseLine( std::string line )
 	{
 		this->logwriter << line << '\n';
-		std::string sl(line);
 		std::smatch smatch;
 		if( std::regex_match( line, smatch, this->regex_set[3] ) ) {
 			return 0;
@@ -61,24 +60,24 @@ namespace Server
 		if( std::regex_match( line, smatch, this->regex_set[4] ) ) {
 			return 0;
 		}
-		if( std::regex_match( sl, smatch, this->regex_set[0] )) {
+		if( std::regex_match( line, smatch, this->regex_set[0] )) {
 			std::cout << "Nation " << smatch[1].str() << " starts in " << smatch[2].str() << "\n";
 			addProvinceOwnership( atoi(smatch[1].str().c_str()),atoi(smatch[2].str().c_str()) );
 			return 0;
 		}
-		if( std::regex_match( sl, smatch, this->regex_set[1] ) ) {
+		if( std::regex_match( line, smatch, this->regex_set[1] ) ) {
 			std::cout << "Battle starting in " << smatch[3].str() << " between " << smatch[1].str() << " and " <<smatch[2].str() << "\n";
 			cur_battle.nationa = atoi(smatch[1].str().c_str());
 			cur_battle.nationb = atoi(smatch[2].str().c_str());
 			cur_battle.provid = atoi(smatch[3].str().c_str());
 			return 0;
 		}
-		if( std::regex_match( sl, smatch, this->regex_set[5] ) ) {
+		if( std::regex_match( line, smatch, this->regex_set[5] ) ) {
 			addProvinceOwnership( atoi(smatch[2].str().c_str()), atoi(smatch[1].str().c_str()));
 			return 0;
 		}
 		if( cur_battle.provid != -1 ) {
-			if( std::regex_match( sl, smatch, this->regex_set[2] ) )  {
+			if( std::regex_match( line, smatch, this->regex_set[2] ) )  {
 				addProvinceOwnership( atoi(smatch[1].str().c_str()), cur_battle.provid );
 				std::cout << "The winner was " << smatch[1].str() << "\n";
 				cur_battle.provid = -1;

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <thread>
 #include <mutex>
+#include "turnparser.hpp"
 namespace Server
 {
 	class MatchWatcher
@@ -20,6 +21,7 @@ namespace Server
 		int lastn;
 		int currentturn;
 		std::vector<std::regex> regex_set;
+		TurnParser * turnParser;
 
 		public:
 		int64_t playerbitmap;

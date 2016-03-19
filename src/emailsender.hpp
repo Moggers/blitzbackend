@@ -1,5 +1,4 @@
 #pragma once
-
 #include <Poco/Net/SMTPClientSession.h>
 #include <Poco/Net/SecureSMTPClientSession.h>
 #include <Poco/Net/MailMessage.h>
@@ -11,6 +10,7 @@
 #include <Poco/Net/SecureStreamSocket.h>
 #include "match.hpp"
 #include <mutex>
+
 namespace Server
 {
 	class EmailSender
