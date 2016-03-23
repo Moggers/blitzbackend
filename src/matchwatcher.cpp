@@ -68,9 +68,8 @@ namespace Server
 		// Once we have a pretender marked, check if we see what it's called
 		batcher.addCheck( R"(.*\/(.*).2h.*)", [this](const std::smatch &match){
 			if( this->lastn != -1 ){
-				const char * name = match[1].str().c_str();
-				fprintf( stdout, "Found name: %s\n", name );
-				this->table->setTurnfileName( this->lastn, name );
+				std::cout << match[1].str() << '\n';
+				this->table->setTurnfileName( this->lastn, match[1].str().c_str() );
 				this->lastn = -1;
 			}
 		});
@@ -122,7 +121,7 @@ namespace Server
 				return NULL;
 			}
 
-			nbytes = read( watcher->proc->from_child, buff+strlen(buff), 65535 ); 
+			nbytes = read( watcher->proc->from_child, buff+strlen(buff), 65535-strlen(buff)); 
 			if( nbytes == -1 ) {
 				usleep( 500000 );
 				continue;
