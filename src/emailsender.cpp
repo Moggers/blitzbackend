@@ -34,7 +34,7 @@ namespace Server
 	{
 		std::ostringstream stream;
 		if( hours == 0 ) {
-			stream << "New turn for match." << cmatch->name;
+			stream << "New turn for match " << cmatch->name;
 		} else if( hours == -1 ) {
 			stream << "Match " << cmatch->name << " is starting.";
 		} else {
