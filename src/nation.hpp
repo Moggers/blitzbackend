@@ -9,6 +9,7 @@ namespace Game
 		char * name;
 		char * turnname;
 		char * title;
+		int computer;
 	};
 }
 

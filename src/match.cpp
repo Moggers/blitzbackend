@@ -96,6 +96,14 @@ namespace Game
 				}
 			}
 		}
+		for( std::vector<Game::Nation*>::iterator it = this->nations->begin(); it != this->nations->end(); it++ )
+		{
+			if( (*it) != NULL ) {
+				if( (*it)->computer == 1 ) { 
+					sprintf( str + strlen(str), "--masterai %d ", (*it)->id );
+				}
+			}
+		}
 		if( this->hostint != 0 )
 			sprintf( str + strlen( str ), "--minutes %d ", this->hostint );
 		if( this->hosthour != 0 || this->hostday != 0 ) {

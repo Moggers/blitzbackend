@@ -5,6 +5,7 @@
 #undef min
 #undef max
 #include <vector>
+#include "nation.hpp"
 #include "mod.hpp"
 namespace Game
 {
@@ -38,6 +39,7 @@ namespace Game
 		int maxholdups;
 		char * masterpass;
 		std::vector<Game::Mod*> * mods;
+		std::vector<Game::Nation*> * nations;
 		private:
 	};
 }

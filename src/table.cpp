@@ -163,6 +163,7 @@ namespace SQL
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
 			std::vector<Game::Mod*> * mods = getModsByMatch( atoi(row[0]) );
 			matches[ii] = new Game::Match( row, mappathrow, mods );
+			matches[ii]->nations = getNations( matches[ii]);
 			ii++;
 			free( query );
 			mysql_free_result( mappath );
@@ -358,7 +359,7 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select nation_id from matchnations where match_id=%lu AND markdelete=1", match->id );
+		sprintf( query, "select nation_id,computer from matchnations where match_id=%lu AND markdelete=1", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Failed to retrieve nation delete requests: %d\n", sqlerrno );
@@ -370,6 +371,7 @@ namespace SQL
 		Game::Nation ** nations = (Game::Nation**)calloc( 64, sizeof( Game::Nation* ) );
 		while( ( nationrow = mysql_fetch_row( nationstuff ) ) != NULL ) {
 			nations[i] = getNation( atoi(nationrow[0]) );
+			nations[i]->computer = atoi(nationrow[1]);
 			i++;
 		}
 		mysql_free_result( nationstuff );
