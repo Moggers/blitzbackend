@@ -16,4 +16,8 @@ namespace Game
 		this->m_dmname = (char*)calloc( strlen( mod->m_dmname)+1, sizeof( char ) );
 		strcpy( this->m_dmname, mod->m_dmname );
 	}
+	Mod::~Mod()
+	{
+		free( m_dmname );
+	}
 }

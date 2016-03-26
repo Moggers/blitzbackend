@@ -32,6 +32,7 @@ namespace Server
 	}
 	void EmailSender::sendNotification( int hours, const char * address, Game::Match * cmatch )
 	{
+		std::cout << "Sending email to " << address << "\n";
 		std::ostringstream stream;
 		if( hours == 0 ) {
 			stream << "New turn for match " << cmatch->name;
@@ -60,6 +61,11 @@ namespace Server
 		} catch( Poco::IllegalStateException &e ) {
 			std::cout << e.message() << '\n';
 			return;
+		} catch( Poco::TimeoutException &e ) {
+			ptrSSLSocket->connect(Poco::Net::SocketAddress( Server::Settings::emailserver_address, 465 ));
+			session = new Poco::Net::SecureSMTPClientSession( *ptrSSLSocket );
+			session->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass);
+			session->sendMessage(message);
 		}
 	}
 }

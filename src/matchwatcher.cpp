@@ -79,7 +79,6 @@ namespace Server
 			if( this->currentturn != tn){
 				this->table->addTurn( this->match, this->currentturn+1 );
 				this->table->updateTimestamp( this->match );
-				this->sendAllNotifications(0);
 				fprintf( stdout, "Turn rollover for %s:%d\n", this->match->name, this->currentturn );
 				this->turnParser.writeTurn();
 				this->turnParser.newTurn( this->currentturn+1 );

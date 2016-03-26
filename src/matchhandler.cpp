@@ -56,11 +56,8 @@ namespace Server
 	// There is no respect here. Only abject terror.
 	void MatchHandler::startNewServers( void )
 	{
-		Game::Match ** matches = m_table->getMatchesByStatus( 6, 0, 1, 10, 11, 12, 13 );
-		if( matches == NULL ) return;
-		int ii = 0;
-		Game::Match * cmatch = NULL;
-		while( ( cmatch = matches[ii++] ) != NULL ) {
+		std::vector<Game::Match*> * matches = m_table->getMatchesByStatus( 6, 0, 1, 10, 11, 12, 13 );
+		for( Game::Match* cmatch : *matches ){
 			int port = 0;
 			if( cmatch->status == 0 ) { // New
 				fprintf( stdout, "I found a new match\n");
@@ -124,23 +121,16 @@ namespace Server
 			inst->match->status = 1;
 			m_table->saveMatch( inst->match );
 		}
-		ii = 0;
-		Game::Match * ptr;
-		while(( ptr = matches[ii++])  != NULL )
-			delete( ptr );
-		free( matches );
+		for( Game::Match*  match : *matches ) {
+			delete( match );
+		}
+		delete (matches );
 	}
 
 	void MatchHandler::beginGames( void )
 	{
-		// Retrieve matches that need to be begun
-		Game::Match ** matches = m_table->getMatchesByStatus( 2, 2, 3 );
-		if( matches == NULL ) return;
-
-		//Iterate through matches
-		int ii = 0;
-		Game::Match * cmatch = NULL;
-		while( ( cmatch = matches[ii++] ) != NULL ) {
+		std::vector<Game::Match*> * matches = m_table->getMatchesByStatus( 2, 2, 3);
+		for( Game::Match* cmatch : *matches ){
 			std::vector<Server::MatchInstance*>::iterator cimatchi = getMatchInstance( cmatch );
 			Server::MatchInstance * cimatch = NULL;
 			if( cimatchi == m_matches.end() ) { // If we reached the end of th matches then create a new one normally
@@ -165,10 +155,17 @@ namespace Server
 							if( m_table->hasSubmittedTurn( cmatch, req.matchnation, tn ) ) {
 								fprintf( stdout, "Submitted turn so marked as don't notify\n" );
 								m_table->setSNTN( req.id, tn );
-							} else if( req.istime == 1 ) {
-								std::cout << "Sending notification of game " << cmatch->name << " to " << req.address << " because it is rolling within " << req.hours << " hours\n";
-								emailSender->sendNotification( req.hours, req.address, cmatch );
-								m_table->setSNTN( req.id, tn );
+							} else {
+								if( req.hours > 0 ) {
+									if( req.istime == 1 ) {
+										std::cout << "Sending notification of game " << cmatch->name << " to " << req.address << " because it is rolling within " << req.hours << " hours\n";
+										emailSender->sendNotification( req.hours, req.address, cmatch );
+										m_table->setSNTN( req.id, tn );
+									}
+								} else {
+									emailSender->sendNotification( req.hours, req.address, cmatch );
+									m_table->setSNTN( req.id, tn );
+								}
 							}
 						}
 					}
@@ -200,18 +197,16 @@ namespace Server
 			m_table->saveMatch( inst->match );
 			m_table->updateTimestamp( inst->match );
 		}
-		free( matches );
+		for( Game::Match*  match : *matches ) {
+			delete( match );
+		}
+		delete (matches );
 	}
 
 	void MatchHandler::shutdownServers( void )
 	{
-		Game::Match ** matches = m_table->getMatchesByStatus( 1, -1 );
-		if( matches == NULL ) return;
-
-		// Iterate through matches
-		int ii = 0;
-		Game::Match * cmatch = NULL;
-		while( ( cmatch = matches[ii++] ) != NULL ) {
+		std::vector<Game::Match*> * matches = m_table->getMatchesByStatus( 1, -1);
+		for( Game::Match* cmatch : *matches ){
 			fprintf( stdout, "Shutting down match\n" );
 			std::vector<Server::MatchInstance*>::iterator cimatchi = getMatchInstance( cmatch );
 			Server::MatchInstance * cimatch = NULL;
@@ -225,7 +220,10 @@ namespace Server
 			m_table->deleteMatch( cmatch );
 			fprintf( stdout, "Deleted match %s\n", cmatch->name );
 		}
-		free( matches );
+		for( Game::Match*  match : *matches ) {
+			delete( match );
+		}
+		delete (matches );
 	}
 }
 

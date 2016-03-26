@@ -5,6 +5,8 @@ namespace Game
 	{
 		public:
 		Nation( int id, char * name, char * title, char * turnname);
+		Nation( Nation * nat );
+		~Nation();
 		int id;
 		char * name;
 		char * turnname;

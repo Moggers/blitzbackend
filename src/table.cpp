@@ -118,7 +118,7 @@ namespace SQL
 		return matches;
 	};
 
-	Game::Match ** Table::getMatchesByStatus( int count, ...  )
+	std::vector<Game::Match*> * Table::getMatchesByStatus( int count, ...  )
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 256, sizeof( char ) );
@@ -143,8 +143,8 @@ namespace SQL
 			return NULL;
 		}
 		free( query );
-
-		Game::Match ** matches = (Game::Match**)calloc( 256, sizeof( Game::Match * ) );
+		
+		std::vector<Game::Match*> * matches = new std::vector<Game::Match*>();
 
 		int ii = 0;
 		while( MYSQL_ROW row = mysql_fetch_row( res ) ) {
@@ -162,8 +162,10 @@ namespace SQL
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
 			std::vector<Game::Mod*> * mods = getModsByMatch( atoi(row[0]) );
-			matches[ii] = new Game::Match( row, mappathrow, mods );
-			matches[ii]->nations = getNations( matches[ii]);
+			Game::Match * match = new Game::Match( row, mappathrow, mods );
+			delete( mods );
+			matches->push_back(  match);
+			match->nations = getNations( match);
 			ii++;
 			free( query );
 			mysql_free_result( mappath );
@@ -332,6 +334,8 @@ namespace SQL
 			return NULL;
 		MYSQL_ROW nationrow = mysql_fetch_row( nationstuff );
 		Game::Nation * newNation = new Game::Nation( id, nationrow[1], nationrow[2], nationrow[3] );
+		free( query );
+		mysql_free_result( nationstuff );
 		return newNation;
 	}
 
@@ -352,6 +356,8 @@ namespace SQL
 				retnat->push_back( this->getNation( atoi(row[0]) ) );
 			}
 		}
+		free( query );
+		mysql_free_result( nations );
 		return retnat;
 	}
 
@@ -421,7 +427,7 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select e.id,e.match_id,email,hours,turn,matchnation_id,if(utc_timestamp>date_add((select lastturn from matches where id=e.match_id), interval (select hostinterval from matches where id=e.match_id)/60-e.hours hour),1,0) from emailrequests e where hours != 0 AND match_id=%lu;", match_id );
+		sprintf( query, "select e.id,e.match_id,email,hours,turn,matchnation_id,if(utc_timestamp>date_add((select lastturn from matches where id=e.match_id), interval (select hostinterval from matches where id=e.match_id)/60-e.hours hour),1,0) from emailrequests e where match_id=%lu;", match_id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Failed to request stale notifications\n" );

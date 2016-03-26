@@ -38,6 +38,7 @@ namespace Game
 		this->t[2] = atoi(match[8]);
 		this->t[3] = atoi(match[9]);
 		this->mods = new std::vector<Game::Mod*>(*mods);
+		this->nations = NULL;
 	}
 
 	Match::Match( Game::Match * match ) :
@@ -68,10 +69,21 @@ namespace Game
 		this->t[2] = match->t[2];
 		this->t[3] = match->t[3];
 
+		if( match->masterpass == NULL ) {
+			this->masterpass = NULL;
+		} else {
+			this->masterpass = strdup( match->masterpass );
+		}
+
 		this->mods = new std::vector<Mod*>();
 		for( auto mod : *match->mods ) {
 			this->mods->push_back( new Mod( mod ) );
 		}
+		this->nations = new std::vector<Nation*>();
+		for( auto nation : *match->nations ) {
+			this->nations->push_back( new Nation( nation ) );
+		}
+
 	}
 
 	Match::~Match( void )
@@ -80,7 +92,16 @@ namespace Game
 		free( this->imgName );
 		free( this->name );
 		free( this->t );
+		for( Game::Mod * mod : *this->mods )
+		{
+			delete( mod );
+		}
+		for( Game::Nation * nation : *this->nations )
+		{
+			delete( nation );
+		}
 		delete( this->mods );
+		delete( this->nations );
 	}
 
 	char* Match::createConfStr( void )
@@ -96,11 +117,13 @@ namespace Game
 				}
 			}
 		}
-		for( std::vector<Game::Nation*>::iterator it = this->nations->begin(); it != this->nations->end(); it++ )
-		{
-			if( (*it) != NULL ) {
-				if( (*it)->computer == 1 ) { 
-					sprintf( str + strlen(str), "--masterai %d ", (*it)->id );
+		if( this->nations != NULL ) {
+			for( std::vector<Game::Nation*>::iterator it = this->nations->begin(); it != this->nations->end(); it++ )
+			{
+				if( (*it) != NULL ) {
+					if( (*it)->computer == 1 ) { 
+						sprintf( str + strlen(str), "--masterai %d ", (*it)->id );
+					}
 				}
 			}
 		}
