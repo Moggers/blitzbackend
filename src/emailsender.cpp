@@ -8,7 +8,7 @@ namespace Server
 {
 	EmailSender::EmailSender( void )
 	{
-		try {
+/*		try {
 			Poco::Net::initializeSSL();
 			// Create memes
 			ptrCert = new Poco::Net::AcceptCertificateHandler(false);
@@ -22,17 +22,17 @@ namespace Server
 		} catch( Poco::Exception &e ) {
 			std::cout << " Threw IO exception trying to open TLS connection: " << e.message() << '\n';
 			return;
-		}
+		}*/
 	}
 
 	EmailSender::~EmailSender( void )
 	{
-		session->close();
-		Poco::Net::uninitializeSSL();
+		/*session->close();
+		Poco::Net::uninitializeSSL();*/
 	}
 	void EmailSender::sendNotification( int hours, const char * address, Game::Match * cmatch )
 	{
-		std::cout << "Sending email to " << address << "\n";
+		/*std::cout << "Sending email to " << address << "\n";
 		std::ostringstream stream;
 		if( hours == 0 ) {
 			stream << "New turn for match " << cmatch->name;
@@ -55,17 +55,17 @@ namespace Server
 		try {
 			session->sendMessage(message);
 			return;
+		} catch( Poco::TimeoutException &e ) {
+			ptrSSLSocket->connect(Poco::Net::SocketAddress( Server::Settings::emailserver_address, 465 ));
+			session = new Poco::Net::SecureSMTPClientSession( *ptrSSLSocket );
+			session->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass);
+			session->sendMessage(message);
 		} catch( Poco::Net::NetException &e ) {
 			std::cout << "Failed to send turn update to " << address << ": " << e.message() << '\n';
 			return;
 		} catch( Poco::IllegalStateException &e ) {
 			std::cout << e.message() << '\n';
 			return;
-		} catch( Poco::TimeoutException &e ) {
-			ptrSSLSocket->connect(Poco::Net::SocketAddress( Server::Settings::emailserver_address, 465 ));
-			session = new Poco::Net::SecureSMTPClientSession( *ptrSSLSocket );
-			session->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass);
-			session->sendMessage(message);
-		}
+		}*/
 	}
 }
