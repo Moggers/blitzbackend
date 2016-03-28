@@ -23,7 +23,7 @@ namespace Server
 		// Allocate command buffer 
 		char * com = (char*)calloc( 512, sizeof( char ) );
 		// Create match
-		this->match = new Game::Match( match );
+		this->match = new Game::Match( *match );
 		// Retrieve config string
 		char * confstr = match->createConfStr();
 		// Retrieve port

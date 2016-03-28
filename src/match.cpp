@@ -41,46 +41,46 @@ namespace Game
 		this->nations = NULL;
 	}
 
-	Match::Match( Game::Match * match ) :
-	id{match->id},
-	mapid{match->mapid},
-	status{match->status},
-	age{match->age},
-	port{match->port},
-	research{match->research},
-	renaming{match->renaming},
-	clientstart{match->clientstart},
-	hostday{match->hostday},
-	hosthour{match->hosthour},
-	hostint{match->hostint},
-	needsrestart{match->needsrestart},
-	maxholdups{match->maxholdups}
+	Match::Match( const Match& match ) :
+	id{match.id},
+	mapid{match.mapid},
+	status{match.status},
+	age{match.age},
+	port{match.port},
+	research{match.research},
+	renaming{match.renaming},
+	clientstart{match.clientstart},
+	hostday{match.hostday},
+	hosthour{match.hosthour},
+	hostint{match.hostint},
+	needsrestart{match.needsrestart},
+	maxholdups{match.maxholdups}
 	{
 		this->mapName = (char*)calloc( 1024, sizeof( char ) );
 		this->imgName = (char*)calloc( 1024, sizeof( char ) );
 		this->name = (char*)calloc( 1024, sizeof( char ) );
 		this->t = (int*)calloc( 4, sizeof( int ) );
 
-		strcpy( this->mapName, match->mapName );
-		strcpy( this->imgName, match->imgName );
-		strcpy( this->name, match->name );
-		this->t[0] = match->t[0];
-		this->t[1] = match->t[1];
-		this->t[2] = match->t[2];
-		this->t[3] = match->t[3];
+		strcpy( this->mapName, match.mapName );
+		strcpy( this->imgName, match.imgName );
+		strcpy( this->name, match.name );
+		this->t[0] = match.t[0];
+		this->t[1] = match.t[1];
+		this->t[2] = match.t[2];
+		this->t[3] = match.t[3];
 
-		if( match->masterpass == NULL ) {
+		if( match.masterpass == NULL ) {
 			this->masterpass = NULL;
 		} else {
-			this->masterpass = strdup( match->masterpass );
+			this->masterpass = strdup( match.masterpass );
 		}
 
 		this->mods = new std::vector<Mod*>();
-		for( auto mod : *match->mods ) {
+		for( auto mod : *match.mods ) {
 			this->mods->push_back( new Mod( mod ) );
 		}
 		this->nations = new std::vector<Nation*>();
-		for( auto nation : *match->nations ) {
+		for( auto nation : *match.nations ) {
 			this->nations->push_back( new Nation( nation ) );
 		}
 
@@ -92,6 +92,7 @@ namespace Game
 		free( this->imgName );
 		free( this->name );
 		free( this->t );
+		free( this->masterpass );
 		for( Game::Mod * mod : *this->mods )
 		{
 			delete( mod );

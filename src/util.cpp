@@ -105,12 +105,6 @@ int get_port( void )
 	free( res );
 	return port;
 }
-int get_specific_port( int port )
-{
-	if( port_check( port ) == 1 ) 
-		return port;
-	else return -1;
-}
 
 int try_get_port( int port )
 {

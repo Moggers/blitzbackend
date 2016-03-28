@@ -14,7 +14,7 @@ namespace Game
 		public:
 		Match( unsigned long id, int mapid, char * mapname, char * imgname, int age, char * name, int status, int port, int t1, int t2, int t3, int t4, int research, int renaming );
 		Match( const MYSQL_ROW match, const MYSQL_ROW map, std::vector<Game::Mod*> * mods );
-		Match( Game::Match * match );
+		Match( const Match& match );
 		Match() {};
 		~Match( void );
 		char* createConfStr( void );
