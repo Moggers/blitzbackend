@@ -49,6 +49,7 @@ namespace SQL
 		if( mysql_query( m_con, query ) != 0 ) {
 			fprintf( stdout, "Failed to insert turn\n" );
 		}
+		free( query );
 	}
 
 	void Table::updateTimestamp( Game::Match * match )
@@ -283,6 +284,7 @@ namespace SQL
 			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n", sqlerrno );
 		sprintf( query, "rm \"%s/%s%lu/%s.2h\"", Server::Settings::pretenderdir, match->name, match->id, nation->turnname );
 		system( query );
+		free( query );
 	}
 
 	int Table::checkPlayerPresent( Game::Match * match, Game::Nation * nation )
@@ -300,6 +302,7 @@ namespace SQL
 			return 1;
 		}
 		mysql_free_result( res );
+		free( query );
 		return 0;
 	}
 
@@ -319,6 +322,8 @@ namespace SQL
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
 			fprintf( stdout, "Failed to add nation to match in database (%lu,%d) %d\n", match->id, nation->id, sqlerrno );
+		free( com );
+		free( query );
 	}
 
 	Game::Nation * Table::getNation( int id )
@@ -518,6 +523,7 @@ namespace SQL
 				fprintf( stdout, "Inserted new turn %d into match %s for player %d\n", turn_id, match->name, matchnation_id );
 			}
 		}
+		free( query );
 	}
 	int Table::hasSubmittedTurn( Game::Match * match, int pl, int tn )
 	{

@@ -59,7 +59,7 @@ namespace Server
 				this->table->addNationToMatch( this->match, nation );
 				fprintf( stdout, "Added nation %s to match %s(%lu)\n", nation->name, this->match->name, this->match->id );
 			}
-			free( nation );
+			delete( nation );
 		});
 		// Check for alert of pretender for nation ID
 		batcher.addCheck( R"(.*Load newlord \(.*\) ([0-9]+).*)", [this](const std::smatch &match){
@@ -167,5 +167,6 @@ namespace Server
 				emailSender->sendNotification( type, req.address, this->match );
 			}
 		}
+		delete( reqs );
 	}
 }

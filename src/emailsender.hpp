@@ -17,6 +17,7 @@ namespace Server
 	{
 		public:
 		EmailSender(void);
+		EmailSender(EmailSender& src );
 		~EmailSender(void);
 		void sendNotification( int hours, const char * address, Game::Match * cmatch );
 		
