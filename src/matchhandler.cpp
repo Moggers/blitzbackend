@@ -169,6 +169,7 @@ namespace Server
 							}
 						}
 					}
+					delete( vec );
 					// Game end status
 					if( cimatch->watcher->mesg == 70 ) {
 						fprintf( stdout, "Match %s ended\n", cimatch->match->name );
