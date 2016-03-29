@@ -311,7 +311,7 @@ namespace SQL
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		removeNationFromMatch( match, nation );
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "insert into matchnations values (0, %d, %lu, 0)", nation->id, match->id );
+		sprintf( query, "insert into matchnations values (0, %d, %lu, 0, 0)", nation->id, match->id );
 		std::stringstream stream;
 		stream << Server::Settings::pretenderdir << "/" << match->name << match->id << "/" << nation->turnname << ".2h";
 		char * com = (char*)calloc( 2048, sizeof( char ) );

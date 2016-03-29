@@ -55,16 +55,22 @@ namespace Server
 		try {
 			session->sendMessage(message);
 			return;
+		} catch( Poco::TimeoutException &e ) {
+			std::cout << "Timed out, reconnecting and retrying\n";
+			try{
+				ptrSSLSocket->connect(Poco::Net::SocketAddress( Server::Settings::emailserver_address, 465 ));
+				session = new Poco::Net::SecureSMTPClientSession( *ptrSSLSocket );
+				session->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass);
+				session->sendMessage(message);
+			} catch( Poco::Net::NetException & e ) {
+				std::cout << "Failed\n";
+			}
 		} catch( Poco::Net::NetException &e ) {
 			std::cout << "Failed to send turn update to " << address << ": " << e.message() << '\n';
 			return;
 		} catch( Poco::IllegalStateException &e ) {
 			std::cout << e.message() << '\n';
 			return;
-		} catch( Poco::TimeoutException &e ) {
-			ptrSSLSocket->connect(Poco::Net::SocketAddress( Server::Settings::emailserver_address, 465 ));
-			session->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass);
-			session->sendMessage(message);
 		}
 	}
 }
