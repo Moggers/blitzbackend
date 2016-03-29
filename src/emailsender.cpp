@@ -66,7 +66,15 @@ namespace Server
 				std::cout << "Failed\n";
 			}
 		} catch( Poco::Net::NetException &e ) {
-			std::cout << "Failed to send turn update to " << address << ": " << e.message() << '\n';
+			std::cout << "Failed to send turn update to " << address << ": " << e.message() << '\n' << "Will reconnect and try again..";
+			try{
+				ptrSSLSocket->connect(Poco::Net::SocketAddress( Server::Settings::emailserver_address, 465 ));
+				session = new Poco::Net::SecureSMTPClientSession( *ptrSSLSocket );
+				session->login(Poco::Net::SMTPClientSession::AUTH_LOGIN, Server::Settings::emailuser, Server::Settings::emailpass);
+				session->sendMessage(message);
+			} catch( Poco::Net::NetException & e ) {
+				std::cout << "Failed\n";
+			}
 			return;
 		} catch( Poco::IllegalStateException &e ) {
 			std::cout << e.message() << '\n';
