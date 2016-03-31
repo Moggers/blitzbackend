@@ -37,6 +37,7 @@ namespace Game
 		int hostint;
 		int needsrestart;
 		int maxholdups;
+		int siterarity;
 		char * masterpass;
 		std::vector<Game::Mod*> * mods;
 		std::vector<Game::Nation*> * nations;

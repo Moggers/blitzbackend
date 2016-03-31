@@ -20,7 +20,9 @@ namespace Game
 		hosthour{atoi(match[15])},
 		hostint{atoi(match[16])},
 		needsrestart{atoi(match[18])},
-		maxholdups{atoi(match[19])}
+		maxholdups{atoi(match[19])},
+		siterarity{atoi(match[20])}
+
 	{
 		this->mapName = (char*)malloc( strlen( map[0] ) + 1 );
 		strcpy( this->mapName, map[0] );
@@ -54,7 +56,8 @@ namespace Game
 	hosthour{match.hosthour},
 	hostint{match.hostint},
 	needsrestart{match.needsrestart},
-	maxholdups{match.maxholdups}
+	maxholdups{match.maxholdups},
+	siterarity{match.siterarity}
 	{
 		this->mapName = (char*)calloc( 1024, sizeof( char ) );
 		this->imgName = (char*)calloc( 1024, sizeof( char ) );
@@ -139,7 +142,8 @@ namespace Game
 		} else {
 			sprintf( str + strlen( str ), "--masterpass %s ", Server::Settings::masterpass );
 		}
-		sprintf( str + strlen( str ), "--maxholdups 1 --renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
+		sprintf( str + strlen( str ), "--magicsites %d --maxholdups 1 --renaming %d -dd --research %d --era %d --thrones %d %d %d --requiredap %d --mapfile \"%s\" \"%s%lu\"", 
+			this->siterarity,
 			this->renaming,
 			this->research,
 			this->age, 
