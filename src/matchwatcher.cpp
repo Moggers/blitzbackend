@@ -54,7 +54,7 @@ namespace Server
 		// Check for received god
 		batcher.addCheck( R"(.*Receiving god for ([0-9]+).*)", [this](const std::smatch &match){
 			int nationid = atoi(match[1].str().c_str());
-			Game::Nation * nation = this->table->getNation( nationid );
+			Game::Nation * nation = this->table->getNation( this->match, nationid );
 			if( this->table->checkPlayerPresent( this->match, nation ) == 0 ) {
 				this->table->addNationToMatch( this->match, nation );
 				fprintf( stdout, "Added nation %s to match %s(%lu)\n", nation->name, this->match->name, this->match->id );
@@ -63,13 +63,15 @@ namespace Server
 		});
 		// Check for alert of pretender for nation ID
 		batcher.addCheck( R"(.*Load newlord \(.*\) ([0-9]+).*)", [this](const std::smatch &match){
-			this->lastn = atoi(match[1].str().c_str());
+			Game::Nation * n = this->table->getNation( this->match, atoi(match[1].str().c_str()));
+			this->lastn = n->id;
+			delete( n );
 		});
 		// Once we have a pretender marked, check if we see what it's called
 		batcher.addCheck( R"(.*\/(.*).2h.*)", [this](const std::smatch &match){
 			if( this->lastn != -1 ){
 				std::cout << match[1].str() << '\n';
-				this->table->setTurnfileName( this->lastn, match[1].str().c_str() );
+				this->table->setTurnfileName( this->lastn, match[1].str().c_str());
 				this->lastn = -1;
 			}
 		});

@@ -21,7 +21,7 @@ namespace Game
 		hostint{atoi(match[16])},
 		needsrestart{atoi(match[18])},
 		maxholdups{atoi(match[19])},
-		siterarity{atoi(match[20])}
+		siterarity{atoi(match[23])}
 
 	{
 		this->mapName = (char*)malloc( strlen( map[0] ) + 1 );
@@ -171,6 +171,7 @@ namespace Game
 		this->t[2] = match->t[2];
 		this->t[3] = match->t[3];
 		this->maxholdups = match->maxholdups;
+		this->siterarity = match->siterarity;
 		delete( match->mods );
 		match->mods = new std::vector<Mod*>();
 		for( auto m : *match->mods ) {

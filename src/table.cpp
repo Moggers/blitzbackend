@@ -254,21 +254,6 @@ namespace SQL
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		int sqlerrno;
-		sprintf( query, "delete from matchnationturns where turn_id in(select id from turns where match_id=%lu)", match->id );
-		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to remove matchnationturns from match %d\n", sqlerrno );
-		sprintf( query, "delete from matchnations where match_id=%lu", match->id );
-		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to remove players from match %d\n", sqlerrno );
-		sprintf( query, "delete from matchmods where match_id=%lu", match->id );
-		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to remove mods from match %d\n", sqlerrno );
-		sprintf( query, "delete from turns where match_id=%lu", match->id );
-		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to remove turns from match %d\n", sqlerrno );
-		sprintf( query, "delete from emailrequests where match_id=%lu", match->id );
-		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
-			fprintf( stdout, "Warning! Failed to remove notification requests from match %d\n", sqlerrno );
 		sprintf( query, "delete from matches where id=%lu", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to delete match %lu at sql %d\n", match->id, sqlerrno );
@@ -311,7 +296,8 @@ namespace SQL
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		removeNationFromMatch( match, nation );
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "insert into matchnations values (0, %d, %lu, 0, 0)", nation->id, match->id );
+		sprintf( query, "insert into matchnations values (0, %d, %lu, 0, 0)", 
+			nation->id, match->id );
 		std::stringstream stream;
 		stream << Server::Settings::pretenderdir << "/" << match->name << match->id << "/" << nation->turnname << ".2h";
 		char * com = (char*)calloc( 2048, sizeof( char ) );
@@ -326,11 +312,11 @@ namespace SQL
 		free( query );
 	}
 
-	Game::Nation * Table::getNation( int id )
+	Game::Nation * Table::getNation( Game::Match * match, int dom_id )
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc(2048, sizeof( char ) );
-		sprintf( query, "select * from nations where id=%d", id );
+		sprintf( query, "select * from nations where dom_id=%d AND mod_id in (select mod_id from matchmods where match_id=%lu)", dom_id, match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Failed to retrieve nation: %d\n", sqlerrno );
@@ -338,7 +324,25 @@ namespace SQL
 		if( nationstuff == NULL ) 
 			return NULL;
 		MYSQL_ROW nationrow = mysql_fetch_row( nationstuff );
-		Game::Nation * newNation = new Game::Nation( id, nationrow[1], nationrow[2], nationrow[3] );
+		Game::Nation * newNation = new Game::Nation( atoi(nationrow[0]), nationrow[1], nationrow[2], nationrow[3] );
+		free( query );
+		mysql_free_result( nationstuff );
+		return newNation;
+	}
+
+	Game::Nation * Table::getNationById( int nation_id )
+	{
+		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
+		char * query = (char*)calloc(2048, sizeof( char ) );
+		sprintf( query, "select * from nations where id=%d", nation_id);
+		int sqlerrno;
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+			fprintf( stdout, "Failed to retrieve nation: %d\n", sqlerrno );
+		MYSQL_RES * nationstuff = mysql_store_result( m_con );
+		if( nationstuff == NULL ) 
+			return NULL;
+		MYSQL_ROW nationrow = mysql_fetch_row( nationstuff );
+		Game::Nation * newNation = new Game::Nation( atoi(nationrow[0]), nationrow[1], nationrow[2], nationrow[3] );
 		free( query );
 		mysql_free_result( nationstuff );
 		return newNation;
@@ -348,7 +352,7 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc(128, sizeof( char ) );
-		sprintf( query, "select nation_id from matchnations where match_id=%lu", match->id );
+		sprintf( query, "select dom_id from nations where id in (select nation_id from matchnations where match_id=%lu)", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Failed to retrieve list of nations for match %lu: %d\n", match->id, sqlerrno );
@@ -358,7 +362,7 @@ namespace SQL
 		if( nations != NULL ) {
 			MYSQL_ROW row;
 			while( ( row = mysql_fetch_row( nations ) ) != NULL ) {
-				retnat->push_back( this->getNation( atoi(row[0]) ) );
+				retnat->push_back( this->getNation( match, atoi(row[0]) ) );
 			}
 		}
 		free( query );
@@ -370,7 +374,7 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select nation_id,computer from matchnations where match_id=%lu AND markdelete=1", match->id );
+		sprintf( query, "select (select dom_id from nations where id=mn.nation_id),computer from matchnations as mn where match_id=%lu AND markdelete=1", match->id );
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Failed to retrieve nation delete requests: %d\n", sqlerrno );
@@ -381,7 +385,7 @@ namespace SQL
 		int i = 0;
 		Game::Nation ** nations = (Game::Nation**)calloc( 64, sizeof( Game::Nation* ) );
 		while( ( nationrow = mysql_fetch_row( nationstuff ) ) != NULL ) {
-			nations[i] = getNation( atoi(nationrow[0]) );
+			nations[i] = getNation( match, atoi(nationrow[0]) );
 			nations[i]->computer = atoi(nationrow[1]);
 			i++;
 		}
@@ -479,7 +483,8 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select id from matchnations where nation_id=%d AND match_id=%lu", pl, match->id  );
+		sprintf( query, "select id from matchnations where nation_id=(select id from nations where dom_id=%d AND mod_id in (select mod_id from matchmods where match_id=%lu)) AND match_id=%lu", 
+			pl, match->id, match->id );
 		int matchnation_id;
 		int turn_id;
 		int sqlerrno;
