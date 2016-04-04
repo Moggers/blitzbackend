@@ -34,29 +34,29 @@ namespace Server
 		stream << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps";
 		mkdir( stream.str().c_str(), 0777 );
 		stream.str("");
-		stream << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->mapName;
-		stream1 << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->mapName;
+		stream << "/" << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->mapName;
+		stream1 << "/" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->mapName;
 		symlink( stream.str().c_str(), stream1.str().c_str() );
 		stream.str("");
 		stream1.str("");
-		stream << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->imgName;
-		stream1 << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->imgName;
+		stream << "/" << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->imgName;
+		stream1 << "/" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->imgName;
 		symlink( stream.str().c_str(), stream1.str().c_str() );
 		// Create location for pretenders to be copied out to
-		sprintf( com, "%s/%s%lu", Server::Settings::pretenderdir, match->name, match->id );
+		sprintf( com, "/%s/%s%lu", Server::Settings::pretenderdir, match->name, match->id );
 		mkdir( com, 0777 );
 		// Create location to for turn logging to be copied out to
-		sprintf( com, "%s/%s%lu", Server::Settings::jsondir, match->name, match->id );
+		sprintf( com, "/%s/%s%lu", Server::Settings::jsondir, match->name, match->id );
 		mkdir( com, 0777 );
 		// Create location for mods to be rsynced into, then rsync them
 		stream.str("");
-		stream << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/mods/";
+		stream << "/" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/mods/";
 		mkdir( stream.str().c_str(), 0777 );
 		for( auto mod : *(this->match->mods) ) {
 			stream.str("");
 			stream << "rsync -tr " <<  
-				Server::Settings::modpath_load << "/" << mod->m_id << "/ " <<
-				Server::Settings::savepath << "/" << this->match->name << this->match->id << "/mods/";
+				"/" << Server::Settings::modpath_load << "/" << mod->m_id << "/ " <<
+				"/" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/mods/";
 			system( stream.str().c_str() );
 		}
 		// Retrieve config string
