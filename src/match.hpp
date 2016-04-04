@@ -18,6 +18,8 @@ namespace Game
 		Match() {};
 		~Match( void );
 		char* createConfStr( void );
+		char** createEnvVars( void );
+		static void destroyEnvVars( char ** envs );
 		void update( Game::Match * match );
 		void sendAllNotifications( void );
 		unsigned long id;

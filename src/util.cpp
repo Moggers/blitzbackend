@@ -14,7 +14,7 @@
 #include <netdb.h>
 
 
-int popen2(const char *cmdline,  popen2_t *childinfo) {
+int popen2(const char *cmdline,  popen2_t *childinfo, char ** envs ) {
     pid_t p;
     int pipe_stdin[2], pipe_stdout[2];
 
@@ -32,7 +32,7 @@ int popen2(const char *cmdline,  popen2_t *childinfo) {
         close(pipe_stdout[0]);
         dup2(pipe_stdout[1], 1);
 		setpgid( 0, 0 );
-        execl("/bin/sh", "sh", "-c", cmdline, 0);
+        execle("/bin/sh", "sh", "-c", cmdline, 0, envs);
         perror("execl"); exit(99);
     }
     childinfo->child_pid = p;

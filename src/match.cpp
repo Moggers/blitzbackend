@@ -1,6 +1,7 @@
 #include "match.hpp"
 #include <stdlib.h>
 #include <string.h>
+#include <sstream>
 #include <stdio.h>
 #include "emailsender.hpp"
 #include "settings.hpp"
@@ -155,6 +156,27 @@ namespace Game
 			this->name,
 			this->id );
 		return str;
+	}
+
+	char** Match::createEnvVars( void )
+	{
+		char ** envs = (char**)calloc( 2, sizeof( char* ) );
+		envs[0] = (char*)calloc( 128, sizeof( char ) ); // MAP PATH
+		envs[1] = (char*)calloc( 128, sizeof( char ) ); // MOD PATH
+		std::ostringstream stream;
+		stream << "DOM4_MAPS=" << Server::Settings::savepath << this->name << this->id << "/maps/";
+		envs[0] = strdup(stream.str().c_str());
+		stream.str("");
+		stream << "DOM4_MODS=" << Server::Settings::savepath << this->name << this->id << "/mods/";
+		envs[1] = strdup(stream.str().c_str());
+		return envs;
+	}
+
+	void Match::destroyEnvVars( char ** envs )
+	{
+		for( int i = 0; i < 2; i++)
+			free( envs[i] );
+		free( envs );
 	}
 
 	void Match::update( Match * match )

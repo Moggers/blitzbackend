@@ -24,40 +24,57 @@ namespace Server
 		char * com = (char*)calloc( 512, sizeof( char ) );
 		// Create match
 		this->match = new Game::Match( *match );
-		// Retrieve config string
-		char * confstr = match->createConfStr();
 		// Retrieve port
 		if( this->match->port == 0 )
 			this->match->port = get_port();
 		else 
 			this->match->port = try_get_port( match->port );
-		// Copy the map files into dom4's map dir
-		sprintf( com, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, this->match->mapid, this->match->mapName, Server::Settings::mappath_save );
-		system( com );
-		sprintf( com, "cp \"%s/%d/%s\" \"%s\"", Server::Settings::mappath_load, this->match->mapid, this->match->imgName, Server::Settings::mappath_save );
-		system( com );
-		// Create location to send pretenders
+		// Create maps folder symlink in the image + map
+		std::ostringstream stream, stream1;
+		stream << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps";
+		mkdir( stream.str().c_str(), 0777 );
+		stream.str("");
+		stream << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->mapName;
+		stream1 << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->mapName;
+		symlink( stream.str().c_str(), stream1.str().c_str() );
+		stream.str("");
+		stream1.str("");
+		stream << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->imgName;
+		stream1 << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->imgName;
+		symlink( stream.str().c_str(), stream1.str().c_str() );
+		// Create location for pretenders to be copied out to
 		sprintf( com, "%s/%s%lu", Server::Settings::pretenderdir, match->name, match->id );
-		// Create location to send turns
 		mkdir( com, 0777 );
+		// Create location to for turn logging to be copied out to
 		sprintf( com, "%s/%s%lu", Server::Settings::jsondir, match->name, match->id );
 		mkdir( com, 0777 );
-		// and the mods
+		// Create location for mods to be rsynced into, then rsync them
+		stream.str("");
+		stream << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/mods/";
+		mkdir( stream.str().c_str(), 0777 );
 		for( auto mod : *(this->match->mods) ) {
-			sprintf( com, "rsync -tr \"%s/%d/\" \"%s\"", Server::Settings::modpath_load, mod->m_id, Server::Settings::modpath_save );
-			system( com );
+			stream.str("");
+			stream << "rsync -tr" <<  
+				Server::Settings::modpath_load << "/" << mod->m_id << " " <<
+				Server::Settings::savepath << "/" << this->match->name << this->match->id << "/mods/";
+			system( stream.str().c_str() );
 		}
+		// Retrieve config string
+		char * confstr = match->createConfStr();
 		// Create the dom4 exe string
 		sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, this->match->port, confstr );
+		// Create the envs
+		char ** envs = this->match->createEnvVars();
 		// Create and open the process
 		this->process = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
-		popen2( com, this->process );
+		popen2( com, this->process, envs );
 		// Create the watcher
 		this->watcher = new MatchWatcher( this->process, table, this->match, emailSender );
 		this->watcher->port = this->match->port;
 		// Free resources
 		free( com );
 		free( confstr );
+		Game::Match::destroyEnvVars( envs );
 	}
 	MatchInstance::MatchInstance( popen2_t * process, Game::Match * match, SQL::Table * table, EmailSender * emailSender ) :process{process}
 	{
@@ -102,9 +119,13 @@ namespace Server
 		waitpid( process->child_pid, NULL, 0 );
 		char * com = (char*)calloc( 512, sizeof( char ) );
 		match->port = try_get_port( match->port );
-		sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, match->port, match->createConfStr() );
+		char * conf = match->createConfStr();
+		sprintf( com,  "%s --tcpserver -T --port %d %s", Server::Settings::exepath, match->port, conf );
+		free( conf );
+		char ** envs = this->match->createEnvVars();
 		popen2_t * proc = (popen2_t*)calloc( 1, sizeof( popen2_t ) );
-		popen2( com, proc );
+		popen2( com, proc, envs);
+		Game::Match::destroyEnvVars( envs );
 		this->process = proc;
 		this->watcher = new MatchWatcher( this->process, m_table, this->match, storesender);
 		this->watcher->port = this->match->port;
