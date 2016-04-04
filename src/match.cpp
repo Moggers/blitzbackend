@@ -160,21 +160,29 @@ namespace Game
 
 	char** Match::createEnvVars( void )
 	{
-		char ** envs = (char**)calloc( 2, sizeof( char* ) );
-		envs[0] = (char*)calloc( 128, sizeof( char ) ); // MAP PATH
-		envs[1] = (char*)calloc( 128, sizeof( char ) ); // MOD PATH
+		char ** envs = (char**)calloc( 4, sizeof( char* ) );
+		envs[0] = (char*)calloc( 512, sizeof( char ) ); // MAP PATH
+		envs[1] = (char*)calloc( 512, sizeof( char ) ); // LOCALMAP PATH
+		envs[2] = (char*)calloc( 512, sizeof( char ) ); // MOD PATH
+		envs[3] = (char*)calloc( 512, sizeof( char ) ); // SAVE PATH
 		std::ostringstream stream;
 		stream << "DOM4_MAPS=" << Server::Settings::savepath << this->name << this->id << "/maps/";
 		envs[0] = strdup(stream.str().c_str());
 		stream.str("");
-		stream << "DOM4_MODS=" << Server::Settings::savepath << this->name << this->id << "/mods/";
+		stream << "DOM4_LOCALMAPS=" << Server::Settings::savepath << this->name << this->id << "/maps/";
 		envs[1] = strdup(stream.str().c_str());
+		stream.str("");
+		stream << "DOM4_MODS=" << Server::Settings::savepath << this->name << this->id << "/mods/";
+		envs[2] = strdup(stream.str().c_str());
+		stream.str("");
+		stream << "DOM4_SAVE=" << Server::Settings::savepath;
+		envs[3] = strdup(stream.str().c_str());
 		return envs;
 	}
 
 	void Match::destroyEnvVars( char ** envs )
 	{
-		for( int i = 0; i < 2; i++)
+		for( int i = 0; i < 4; i++)
 			free( envs[i] );
 		free( envs );
 	}

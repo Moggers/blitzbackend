@@ -54,8 +54,8 @@ namespace Server
 		mkdir( stream.str().c_str(), 0777 );
 		for( auto mod : *(this->match->mods) ) {
 			stream.str("");
-			stream << "rsync -tr" <<  
-				Server::Settings::modpath_load << "/" << mod->m_id << " " <<
+			stream << "rsync -tr " <<  
+				Server::Settings::modpath_load << "/" << mod->m_id << "/ " <<
 				Server::Settings::savepath << "/" << this->match->name << this->match->id << "/mods/";
 			system( stream.str().c_str() );
 		}
