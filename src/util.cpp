@@ -103,6 +103,7 @@ int get_port( void )
 	port = sa.sin_port;
 	close( sockfd );
 	free( res );
+	while( port < 1000 ) port = get_port();
 	return port;
 }
 
@@ -136,6 +137,7 @@ int try_get_port( int port )
 			return -1;
 		}
 		port = sa.sin_port;
+		while( port < 1000 ) port = get_port();
 	}
 	close( sockfd );
 	free( w );
