@@ -32,15 +32,7 @@ namespace Server
 		// Create maps folder symlink in the image + map
 		std::ostringstream stream, stream1;
 		stream << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps";
-		mkdir( stream.str().c_str(), 0777 );
-		stream.str("");
-		stream << "/" << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->mapName;
-		stream1 << "/" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->mapName;
-		symlink( stream.str().c_str(), stream1.str().c_str() );
-		stream.str("");
-		stream1.str("");
-		stream << "/" << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->imgName;
-		stream1 << "/" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->imgName;
+		stream1 << "/" << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->mapName;
 		symlink( stream.str().c_str(), stream1.str().c_str() );
 		// Create location for pretenders to be copied out to
 		sprintf( com, "/%s/%s%lu", Server::Settings::pretenderdir, match->name, match->id );
