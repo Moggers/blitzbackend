@@ -52,6 +52,16 @@ namespace SQL
 		free( query );
 	}
 
+	void Table::deleteTurns( Game::Match * match )
+	{
+		char * query = (char*)calloc( 128, sizeof( char ) );
+		sprintf( query, "delete from turns where match_id=%lu;", match->id );
+		if( mysql_query( m_con, query ) != 0 ) {
+			fprintf( stdout, "Failed to remove turns from db\n" );
+		}
+		free( query );
+	}
+
 	void Table::updateTimestamp( Game::Match * match )
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);

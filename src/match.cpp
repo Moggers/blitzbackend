@@ -1,4 +1,5 @@
 #include "match.hpp"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sstream>
@@ -214,6 +215,24 @@ namespace Game
 		match->mods = new std::vector<Mod*>();
 		for( auto m : *match->mods ) {
 			match->mods->push_back( new Mod(m) );
+		}
+	}
+
+	void Match::deleteFiles( void )
+	{
+		std::ostringstream basepath;
+		basepath << Server::Settings::savepath << this->name << this->id << "/";
+		std::ostringstream fullpath;
+		fullpath << basepath.str() << "ftherlnd";
+		remove( fullpath.str().c_str() );
+		for( Game::Nation * n : *nations )
+		{
+			fullpath.str("");
+			fullpath << basepath.str() << n->turnname << ".trn";
+			remove( fullpath.str().c_str() );
+			fullpath.str("");
+			fullpath << basepath.str() << n->turnname << ".2h";
+			remove( fullpath.str().c_str() );
 		}
 	}
 }

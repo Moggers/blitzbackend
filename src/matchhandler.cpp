@@ -52,8 +52,6 @@ namespace Server
 		exit( 1 );
 	}
 
-	// I would call this black magic. But black magic typically inspires both fear, and respect.
-	// There is no respect here. Only abject terror.
 	void MatchHandler::startNewServers( void )
 	{
 		std::vector<Game::Match*> * matches = m_table->getMatchesByStatus( 6, 0, 1, 10, 11, 12, 13 );
@@ -83,8 +81,6 @@ namespace Server
 					if( inst->match->status == 10 ) {
 						 inst->match->status = 3;
 						 m_table->updateTimestamp( inst->match );
-						 // THIS IS MEANT TO UNDO THE READONLY CHANGES THAT ARE PART OF THE FAILED SYSTEM TO PROTECT PRETENDERS FROM REUPLOAD
-						 //inst->allowTurnChanges();
 					}
 					inst->watcher->mesg = 0;
 				} else if( inst->watcher->mesg == -1 ) {
@@ -197,6 +193,28 @@ namespace Server
 			inst->match->status = 3;
 			m_table->saveMatch( inst->match );
 			m_table->updateTimestamp( inst->match );
+		}
+		for( Game::Match*  match : *matches ) {
+			delete( match );
+		}
+		delete (matches );
+	}
+
+	void MatchHandler::restartServers( void )
+	{
+		std::vector<Game::Match*> * matches = m_table->getMatchesByStatus( 1, -2 );
+		for( Game::Match * cmatch : *matches ) {
+			m_table->deleteTurns( cmatch );
+			cmatch->deleteFiles();
+			if( getMatchInstance( cmatch ) == m_matches.end() ) {
+				cmatch->status = 0;
+			} else {
+				Server::MatchInstance * inst = *getMatchInstance(cmatch);
+				inst->moveInTurns();
+				inst->restart();
+				cmatch->status = 1;
+				m_table->saveMatch( cmatch );
+			}
 		}
 		for( Game::Match*  match : *matches ) {
 			delete( match );

@@ -22,6 +22,7 @@ namespace Game
 		static void destroyEnvVars( char ** envs );
 		void update( Game::Match * match );
 		void sendAllNotifications( void );
+		void deleteFiles( void );
 		unsigned long id;
 		int mapid;
 		char * mapName;

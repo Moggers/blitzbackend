@@ -18,6 +18,8 @@ namespace Server
 		void beginGames( void );
 		// Shutdown servers that need to be shutdown
 		void shutdownServers( void );
+		// Resets servers
+		void restartServers( void );
 		// Bogus static variable for static signal function
 		static MatchHandler * WhyDoIHaveToDoThis;
 		// Static signal function for SIGINT
