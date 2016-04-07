@@ -1,4 +1,5 @@
 #include "matchinstance.hpp"
+#include <cerrno>
 #include <sstream>
 #include <string.h>
 #include <sys/wait.h>
@@ -29,11 +30,21 @@ namespace Server
 			this->match->port = get_port();
 		else 
 			this->match->port = try_get_port( match->port );
-		// Create maps folder symlink in the image + map
+		// symlink maps folder
 		std::ostringstream stream, stream1;
-		stream << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps";
-		stream1 << "/" << Server::Settings::mappath_load << "/" << this->match->mapid << "/" << this->match->mapName;
-		symlink( stream.str().c_str(), stream1.str().c_str() );
+		stream << Server::Settings::savepath << "/" << this->match->name << this->match->id;
+		mkdir( stream.str().c_str(), 0755 );
+		stream << "/maps/";
+		mkdir( stream.str().c_str(), 0755 );
+
+		stream.str("");
+		stream << "cp " << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->mapName
+		<< " " << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->mapName;
+		system( stream.str().c_str() );
+		stream.str("");
+		stream << "cp " << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->imgName
+		<< " " << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->imgName;
+		system( stream.str().c_str() );
 		// Create location for pretenders to be copied out to
 		sprintf( com, "/%s/%s%lu", Server::Settings::pretenderdir, match->name, match->id );
 		mkdir( com, 0777 );

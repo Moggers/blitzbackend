@@ -23,6 +23,7 @@ int main( int argc, char ** argv )
 		matchHandler->startNewServers();
 		matchHandler->beginGames();
 		matchHandler->shutdownServers();
+		matchHandler->restartServers();
 	}
 	muntrace();
 	free( confpath );

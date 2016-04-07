@@ -207,14 +207,16 @@ namespace Server
 			m_table->deleteTurns( cmatch );
 			cmatch->deleteFiles();
 			if( getMatchInstance( cmatch ) == m_matches.end() ) {
-				cmatch->status = 0;
-			} else {
-				Server::MatchInstance * inst = *getMatchInstance(cmatch);
-				inst->moveInTurns();
-				inst->restart();
-				cmatch->status = 1;
-				m_table->saveMatch( cmatch );
+				Server::MatchInstance * inst = new MatchInstance( cmatch, m_table, 0, emailSender );
+				m_matches.push_back( inst );
+				fprintf( stdout, "Started server on port %d.\n", inst->match->port );
 			}
+			Server::MatchInstance * inst = *getMatchInstance(cmatch);
+			inst->moveInTurns();
+			inst->restart();
+			inst->match->status = 1;
+
+			m_table->saveMatch( inst->match );
 		}
 		for( Game::Match*  match : *matches ) {
 			delete( match );
