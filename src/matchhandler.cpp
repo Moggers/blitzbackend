@@ -206,7 +206,7 @@ namespace Server
 
 	void MatchHandler::shutdownServers( void )
 	{
-		std::vector<Game::Match*> * matches = m_table->getMatchesByStatus( 1, -1);
+		std::vector<Game::Match*> * matches = m_table->getMatchesByStatus( 2, -1, 71);
 		for( Game::Match* cmatch : *matches ){
 			fprintf( stdout, "Shutting down match\n" );
 			std::vector<Server::MatchInstance*>::iterator cimatchi = getMatchInstance( cmatch );
@@ -218,8 +218,13 @@ namespace Server
 				(*cimatchi)->shutdown();
 				m_matches.erase( cimatchi );
 			}
-			m_table->deleteMatch( cmatch );
-			fprintf( stdout, "Deleted match %s\n", cmatch->name );
+			if( cmatch->status == -1 ) {
+				m_table->deleteMatch( cmatch );
+				fprintf( stdout, "Deleted match %s\n", cmatch->name );
+			} else if( cmatch->status == 71 ) {
+				cmatch->status = 70;
+				m_table->saveMatch( cmatch );
+			}
 		}
 		for( Game::Match*  match : *matches ) {
 			delete( match );

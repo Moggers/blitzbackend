@@ -91,6 +91,7 @@ namespace Server
 			fprintf( stdout, "Received turn on match %s for player %d\n", this->match->name, atoi(match[1].str().c_str()) );
 			this->table->markTurnSubmitted( this->match, atoi(match[1].str().c_str()) );
 		});
+		// Check for game over
 		batcher.addCheck( R"(.*Game Over.*)", [this](const std::smatch &match){
 			this->mesg = 70;
 		});
