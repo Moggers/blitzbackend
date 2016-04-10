@@ -38,18 +38,19 @@ namespace Server
 		mkdir( stream.str().c_str(), 0755 );
 
 		stream.str("");
-		stream << "cp " << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->mapName
-		<< " " << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->mapName;
+		stream << "cp \"" << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->mapName
+		<< "\" \"" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/\"";
 		system( stream.str().c_str() );
 		stream.str("");
-		stream << "cp " << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->imgName
-		<< " " << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/" << this->match->imgName;
+		stream << "cp \"" << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->imgName
+		<< "\" \"" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/\"";
 		system( stream.str().c_str() );
 		// Create location for pretenders to be copied out to
 		sprintf( com, "/%s/%s%lu", Server::Settings::pretenderdir, match->name, match->id );
 		mkdir( com, 0777 );
 		// Create location to for turn logging to be copied out to
 		sprintf( com, "/%s/%s%lu", Server::Settings::jsondir, match->name, match->id );
+		remove( com );
 		mkdir( com, 0777 );
 		// Create location for mods to be rsynced into, then rsync them
 		stream.str("");
