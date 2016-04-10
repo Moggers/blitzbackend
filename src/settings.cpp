@@ -35,7 +35,7 @@ namespace Server {
 	}
 	int Settings::loadSettings( const char * configpath )
 	{
-		char * configfile = (char*)calloc( 256, sizeof( char* ));
+		char * configfile = (char*)calloc( 256, sizeof( char ));
 		sprintf( configfile,  "%sconfig.cfg", configpath );
 		cf = NULL;
 		const config_setting_t *retries;

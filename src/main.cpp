@@ -1,6 +1,5 @@
 #include "matchhandler.hpp"
 #include <stdlib.h>
-#include <mcheck.h>
 #include "settings.hpp"
 #include <sstream>
 #include <fstream>
@@ -13,7 +12,6 @@
 #include "emailsender.hpp"
 int main( int argc, char ** argv )
 {
-	mtrace();
 	char * confpath = (char*)calloc( 512, sizeof( char ) );
 	sprintf( confpath, "%s/.config/blitzbackend/", getenv( "HOME" ) );
 	Server::Settings::loadSettings( confpath );
@@ -25,7 +23,7 @@ int main( int argc, char ** argv )
 		matchHandler->shutdownServers();
 		matchHandler->restartServers();
 	}
-	muntrace();
+	delete( matchHandler );
 	free( confpath );
 	return 0;
 }

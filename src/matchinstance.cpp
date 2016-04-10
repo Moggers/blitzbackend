@@ -114,7 +114,7 @@ namespace Server
 		waitpid( process->child_pid, NULL, 0 );
 		return retcode;
 	}
-	void MatchInstance::restart( void )
+	int MatchInstance::restart( void )
 	{
 		fprintf( stdout, "Restarting sever %s\n", match->name );
 		EmailSender * storesender = this->watcher->emailSender;
@@ -133,6 +133,8 @@ namespace Server
 		this->process = proc;
 		this->watcher = new MatchWatcher( this->process, m_table, this->match, storesender);
 		this->watcher->port = this->match->port;
+		free( com );
+		return retcode;
 	}
 
 	void MatchInstance::allowTurnChanges()
@@ -148,10 +150,10 @@ namespace Server
 	void MatchInstance::moveInTurns()
 	{
 		fprintf( stdout, "Copying in pretenders\n" );
-		std::vector<Game::Nation*> * nat = m_table->getNations( this->match );
 		char * com = (char*)calloc( 1024, sizeof( char ) );
 		sprintf( com, "rsync -trv \"%s/%s%lu/\" \"%s/%s%lu/\"", 
 			Server::Settings::pretenderdir, this->match->name, this->match->id, Server::Settings::savepath, this->match->name, this->match->id );
 		system( com );
+		free( com );
 	}
 }

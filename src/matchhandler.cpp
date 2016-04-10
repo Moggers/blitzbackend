@@ -59,7 +59,6 @@ namespace Server
 			int port = 0;
 			if( cmatch->status == 0 ) { // New
 				fprintf( stdout, "I found a new match\n");
-				port = get_port();
 			} else if( getMatchInstance( cmatch ) == m_matches.end() ) { // Already started
 				fprintf( stdout, "I found a match, It is meant to be running on port %d, but I don't know about it\n", cmatch->port );
 			} else { // Running
@@ -99,6 +98,7 @@ namespace Server
 						sprintf( str, "%s/%s%lu/%s.2h", Settings::savepath, cmatch->name, cmatch->id, nations[ii]->turnname );
 						remove( str );
 						m_table->removeNationFromMatch( cmatch, nations[ii] );
+						free( str );
 					}
 					fprintf( stdout, "Shutting down for player remove\n" );
 					inst->restart();

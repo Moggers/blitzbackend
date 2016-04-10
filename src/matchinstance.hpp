@@ -19,7 +19,7 @@ namespace Server
 		MatchInstance( Game::Match * match, SQL::Table * table, int state, EmailSender * emailSender );
 		MatchInstance( void );
 		int shutdown( void );
-		void restart( void );
+		int restart( void );
 		int checkTimer( Game::Match * match );
 		void allowTurnChanges();
 		void moveInTurns();

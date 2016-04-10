@@ -114,18 +114,33 @@ namespace SQL
 		while( MYSQL_ROW row = mysql_fetch_row( res ) ) {
 			char * query = (char*)calloc( 128, sizeof( char ) );
 			sprintf( query, "select mappath,imagepath from maps where id=%s", row[1] );
-			if( mysql_query( m_con, query ) )
+			if( mysql_query( m_con, query ) ) {
+				free( query );
+				int i=0;
+				Game::Match * cm;
+				while( (cm = matches[i++])!=NULL)
+					delete( cm );
+				free( matches );
 				return NULL;
+			}
 			MYSQL_RES * mappath = mysql_store_result( m_con );
-			if ( mappath == NULL )
+			if ( mappath == NULL ) {
+				free( query );
+				int i=0;
+				Game::Match * cm;
+				while( (cm = matches[i++])!=NULL)
+					delete( cm );
+				free( matches );
 				return NULL;
+			}
 
 			MYSQL_ROW mappathrow = mysql_fetch_row( mappath );
 			std::vector<Game::Mod*> * mods = getModsByMatch( atoi(row[0]) );
 			matches[ii] = new Game::Match( row, mappathrow, mods );
 			ii++;
+			mysql_free_result( mappath );
+			free( query );
 		}
-
 		return matches;
 	};
 
@@ -205,6 +220,7 @@ namespace SQL
 			sprintf( query, "select dmname from mods where id=%s", modidrow[0] );
 			if( mysql_query( m_con, query ) ) {
 				free( query );
+				delete( returnvec );
 				return NULL;
 			}
 			MYSQL_RES * modname = mysql_store_result( m_con );
@@ -267,6 +283,7 @@ namespace SQL
 		sprintf( query, "delete from matches where id=%lu", match->id );
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Warning! Failed to delete match %lu at sql %d\n", match->id, sqlerrno );
+		free( query );
 	}
 
 	void Table::removeNationFromMatch( Game::Match * match, Game::Nation * nation )
@@ -294,6 +311,7 @@ namespace SQL
 		MYSQL_ROW row;
 		if( ( row = mysql_fetch_row( res ) ) != 0 ) {
 			mysql_free_result( res );
+			free( query );
 			return 1;
 		}
 		mysql_free_result( res );
@@ -331,8 +349,10 @@ namespace SQL
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Failed to retrieve nation: %d\n", sqlerrno );
 		MYSQL_RES * nationstuff = mysql_store_result( m_con );
-		if( nationstuff == NULL ) 
+		if( nationstuff == NULL ) {
+			free( query );
 			return NULL;
+		}
 		MYSQL_ROW nationrow = mysql_fetch_row( nationstuff );
 		Game::Nation * newNation = new Game::Nation( atoi(nationrow[0]), nationrow[1], nationrow[2], nationrow[3] );
 		free( query );
@@ -349,8 +369,10 @@ namespace SQL
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
 			fprintf( stdout, "Failed to retrieve nation: %d\n", sqlerrno );
 		MYSQL_RES * nationstuff = mysql_store_result( m_con );
-		if( nationstuff == NULL ) 
+		if( nationstuff == NULL ) {
+			free( query );
 			return NULL;
+		}
 		MYSQL_ROW nationrow = mysql_fetch_row( nationstuff );
 		Game::Nation * newNation = new Game::Nation( atoi(nationrow[0]), nationrow[1], nationrow[2], nationrow[3] );
 		free( query );
@@ -386,16 +408,30 @@ namespace SQL
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		sprintf( query, "select (select dom_id from nations where id=mn.nation_id),computer from matchnations as mn where match_id=%lu AND markdelete=1", match->id );
 		int sqlerrno;
-		if( (sqlerrno = mysql_query( m_con, query )) != 0 )
+		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Failed to retrieve nation delete requests: %d\n", sqlerrno );
-		MYSQL_RES * nationstuff = mysql_store_result( m_con );
-		if( nationstuff == NULL ) 
+			free( query );
 			return NULL;
+		}
+		MYSQL_RES * nationstuff = mysql_store_result( m_con );
+		if( nationstuff == NULL ) {
+			free( query );
+			return NULL;
+		}
 		MYSQL_ROW nationrow;
 		int i = 0;
 		Game::Nation ** nations = (Game::Nation**)calloc( 64, sizeof( Game::Nation* ) );
 		while( ( nationrow = mysql_fetch_row( nationstuff ) ) != NULL ) {
 			nations[i] = getNation( match, atoi(nationrow[0]) );
+			if( nations[i] == NULL ) {
+				free( query );
+				int i=0;
+				Game::Nation * cn;
+				while( (cn = nations[i++])!=NULL)
+					delete( cn );
+				free( nations );
+				return NULL;
+			}
 			nations[i]->computer = atoi(nationrow[1]);
 			i++;
 		}
@@ -425,6 +461,7 @@ namespace SQL
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Failed to retrieve notification requests %d\n", sqlerrno );
+			free( query );
 			return NULL;
 		} else {
 			std::vector<Server::emailrequest_t> * vec = new std::vector<Server::emailrequest_t>();
@@ -450,6 +487,7 @@ namespace SQL
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
 			fprintf( stdout, "Failed to request stale notifications\n" );
+			free( query );
 			return NULL;
 		} else {
 			std::vector<Server::emailrequest_t> * vec = new std::vector<Server::emailrequest_t>();
@@ -504,11 +542,13 @@ namespace SQL
 			MYSQL_RES * res = mysql_store_result( m_con );
 			if( res == NULL ) {
 				fprintf( stdout, "Failed to retrieve matchnation for match %lu nation %d\n", match->id, pl );
+				free( query );
 				return;
 			}
 			MYSQL_ROW row = mysql_fetch_row( res );
 			if( row == NULL ) {
 				fprintf( stdout, "Failed to retrieve matchnation for match %lu nation %d\n", match->id, pl );
+				free( query );
 				return;
 			}
 			matchnation_id = atoi(row[0]);
@@ -521,11 +561,13 @@ namespace SQL
 				MYSQL_RES * res = mysql_store_result( m_con );
 				if( res == NULL ) {
 					fprintf( stdout, "Failed to retrieve last turn for match %lu\n", match->id);
+					free( query );
 					return;
 				}
 				MYSQL_ROW row = mysql_fetch_row( res );
 				if( row == NULL ) {
 					fprintf( stdout, "Failed to retrieve last turn for match %lu\n", match->id);
+					free( query );
 					return;
 				}
 				turn_id = atoi(row[0]);
