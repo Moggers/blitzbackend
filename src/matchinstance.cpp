@@ -121,6 +121,21 @@ namespace Server
 		this->watcher->destroyWatcher();
 		int retcode = kill( process->child_pid, SIGTERM );
 		waitpid( process->child_pid, NULL, 0 );
+
+		std::ostringstream stream, stream1;
+		stream << Server::Settings::savepath << "/" << this->match->name << this->match->id;
+		mkdir( stream.str().c_str(), 0755 );
+		stream << "/maps/";
+		mkdir( stream.str().c_str(), 0755 );
+		stream.str("");
+		stream << "cp \"" << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->mapName
+		<< "\" \"" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/\"";
+		system( stream.str().c_str() );
+		stream.str("");
+		stream << "cp \"" << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->imgName
+		<< "\" \"" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/\"";
+		system( stream.str().c_str() );
+
 		char * com = (char*)calloc( 512, sizeof( char ) );
 		match->port = try_get_port( match->port );
 		char * conf = match->createConfStr();
