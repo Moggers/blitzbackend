@@ -202,6 +202,9 @@ namespace Game
 		free( this->mapName );
 		this->mapName = (char*)calloc( strlen(match->mapName)+1, sizeof(char));
 		strcpy( this->mapName, match->mapName );
+		free( this->imgName );
+		this->imgName = (char*)calloc( strlen(match->imgName)+1, sizeof(char));
+		strcpy( this->imgName, match->imgName );
 		this->research = match->research;
 		this->renaming = match->renaming;
 		this->clientstart = match->clientstart;
