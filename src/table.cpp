@@ -531,23 +531,26 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select id from matchnations where nation_id=(select id from nations where dom_id=%d AND mod_id in (select mod_id from matchmods where match_id=%lu)) AND match_id=%lu", 
+		sprintf( query, "select id from matchnations where nation_id in (select id from nations where dom_id=%d AND mod_id in (select mod_id from matchmods where match_id=%lu)) AND match_id=%lu", 
 			pl, match->id, match->id );
 		int matchnation_id;
 		int turn_id;
 		int sqlerrno;
 		if( (sqlerrno = mysql_query( m_con, query )) != 0 ) {
-			fprintf( stdout, "Failed to retrieve matchnation for match %lu nation %d\n", match->id, pl );
+			fprintf( stdout, "Failed to query matchnation for match %lu nation %d\n", match->id, pl );
+			fprintf( stdout, query );
 		} else {
 			MYSQL_RES * res = mysql_store_result( m_con );
 			if( res == NULL ) {
-				fprintf( stdout, "Failed to retrieve matchnation for match %lu nation %d\n", match->id, pl );
+				fprintf( stdout, "Failed to fetch results matchnation for match %lu nation %d\n", match->id, pl );
+				fprintf( stdout, query );
 				free( query );
 				return;
 			}
 			MYSQL_ROW row = mysql_fetch_row( res );
 			if( row == NULL ) {
-				fprintf( stdout, "Failed to retrieve matchnation for match %lu nation %d\n", match->id, pl );
+				fprintf( stdout, "Failed to retrieve row matchnation for match %lu nation %d\n", match->id, pl );
+				fprintf( stdout, query );
 				free( query );
 				return;
 			}
