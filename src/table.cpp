@@ -531,7 +531,7 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select id from matchnations where nation_id in (select id from nations where dom_id=%d AND mod_id in (select mod_id from matchmods where match_id=%lu)) AND match_id=%lu", 
+		sprintf( query, "select id from matchnations where nation_id=(select id from nations where dom_id=%d AND mod_id in (select mod_id from matchmods where match_id=%lu) order by mod_id desc limit 1) AND match_id=%lu", 
 			pl, match->id, match->id );
 		int matchnation_id;
 		int turn_id;
