@@ -44,11 +44,13 @@ namespace Server
 		std::ostringstream fname;
 		mkdir( this->jsondir.c_str(), 0775 );
 		fname << this->jsondir << "/" << turnN << ".json";
-		this->filename = fname.str();
 		fileread = std::ifstream( fname.str() ); 
 		if( fileread.is_open() ) {
 			fileread >> root;
 		}
+		fname.str("");
+		fname << this->jsondir << "/" << turnN+1 << ".json";
+		this->filename = fname.str();
 		cur_battle.provid = -1;
 		std::cout << "New turn " << turnN << " writing to " << filename << "\n";
 		fname << ".log";
