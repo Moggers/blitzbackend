@@ -64,7 +64,7 @@ namespace Server
 
 	int TurnParser::parseLine( std::string line )
 	{
-		this->logwriter << line << '\n';
+	//	this->logwriter << line << '\n';
 		batcher.checkString( line );
 		return 1;
 	}
