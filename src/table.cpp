@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include "godreader.hpp"
 
 namespace SQL
 {
@@ -324,8 +325,11 @@ namespace SQL
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		removeNationFromMatch( match, nation );
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "insert into matchnations values (0, %d, %lu, 0, 0)", 
-			nation->id, match->id );
+		sprintf( com, "%s/%s%lu/%s.2h", Server::Settings::savepath, match->name, match->id, nation->turnname );
+		char * pname = (char*)calloc( 64, sizeof(char) );
+		Gods::getName( com, pname );
+		sprintf( query, "insert into matchnations values (0, %d, %lu, 0, 0, %s)", 
+			nation->id, match->id, pname );
 		std::stringstream stream;
 		stream << Server::Settings::pretenderdir << "/" << match->name << match->id << "/" << nation->turnname << ".2h";
 		char * com = (char*)calloc( 2048, sizeof( char ) );
@@ -338,6 +342,7 @@ namespace SQL
 			fprintf( stdout, "Failed to add nation to match in database (%lu,%d) %d\n", match->id, nation->id, sqlerrno );
 		free( com );
 		free( query );
+		free( pname );
 	}
 
 	Game::Nation * Table::getNation( Game::Match * match, int dom_id )
