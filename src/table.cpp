@@ -325,10 +325,11 @@ namespace SQL
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		removeNationFromMatch( match, nation );
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( com, "%s/%s%lu/%s.2h", Server::Settings::savepath, match->name, match->id, nation->turnname );
+		char * fname = (char*)calloc( 2048, sizeof( char ));
 		char * pname = (char*)calloc( 64, sizeof(char) );
-		Gods::getName( com, pname );
-		sprintf( query, "insert into matchnations values (0, %d, %lu, 0, 0, %s)", 
+		sprintf( fname, "%s/%s%lu/%s.2h", Server::Settings::savepath, match->name, match->id, nation->turnname );
+		Gods::getName( fname, pname );
+		sprintf( query, "insert into matchnations values (0, %d, %lu, 0, 0, \"%s\")", 
 			nation->id, match->id, pname );
 		std::stringstream stream;
 		stream << Server::Settings::pretenderdir << "/" << match->name << match->id << "/" << nation->turnname << ".2h";
@@ -339,7 +340,8 @@ namespace SQL
 		system( com );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
-			fprintf( stdout, "Failed to add nation to match in database (%lu,%d) %d\n", match->id, nation->id, sqlerrno );
+			fprintf( stdout, "Failed to add nation to match in database (%lu,%d) %d\n%s\n", match->id, nation->id, sqlerrno, query );
+		free( fname );
 		free( com );
 		free( query );
 		free( pname );
