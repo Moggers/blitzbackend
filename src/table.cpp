@@ -327,6 +327,7 @@ namespace SQL
 		char * query = (char*)calloc( 2048, sizeof( char ) );
 		char * fname = (char*)calloc( 2048, sizeof( char ));
 		char * pname = (char*)calloc( 64, sizeof(char) );
+		strcpy( pname, "Unknown Name");
 		sprintf( fname, "%s/%s%lu/%s.2h", Server::Settings::savepath, match->name, match->id, nation->turnname );
 		Gods::getName( fname, pname );
 		sprintf( query, "insert into matchnations values (0, %d, %lu, 0, 0, \"%s\")", 

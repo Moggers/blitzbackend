@@ -16,16 +16,35 @@ namespace Gods {
 			fgetc(f);
 		}
 		while( (ch = fgetc(f)) != 0x4f) {
+			if( ch == EOF ) {
+				fclose(f);
+				return;
+			}
 		}
 		while( (ch = fgetc(f)) != 0x78) {
+			if( ch == EOF ) {
+				fclose(f);
+				return;
+			}
 		}
 		while( (ch = fgetc(f)) != 0x78) {
+			if( ch == EOF ) {
+				fclose(f);
+				return;
+			}
 		}
 		for( i  = 0; i < 80; i++ ) {
-			fgetc(f);
+			if( fgetc(f) == EOF ) {
+				fclose(f);
+				return;
+			}
 		}
 		i = 0;
 		while( (ch = fgetc(f)) != 0x4f ) {
+			if( ch == EOF ) {
+				fclose(f);
+				return;
+			}
 			res[i] = ch ^ 0x4f;
 			i++;
 		}
