@@ -46,6 +46,7 @@ namespace Gods {
 				return;
 			}
 			res[i] = ch ^ 0x4f;
+			res[i+1] = 0x0;
 			i++;
 		}
 		fclose( f );
