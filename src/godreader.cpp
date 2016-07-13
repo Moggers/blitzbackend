@@ -7,7 +7,6 @@ namespace Gods {
 		FILE  *f;
 		f = fopen( fname, "r+" );
 		if( f == 0x0 ) {
-			fprintf( stdout, "Failed to open pretender file %s!\n", fname );
 			return;
 		}
 		int ch;
@@ -21,19 +20,19 @@ namespace Gods {
 				return;
 			}
 		}
-		while( (ch = fgetc(f)) != 0x78) {
+		int lastpassend;
+		while( ch = fgetc(f)) {
 			if( ch == EOF ) {
 				fclose(f);
 				return;
 			}
-		}
-		while( (ch = fgetc(f)) != 0x78) {
-			if( ch == EOF ) {
-				fclose(f);
-				return;
+			if( ch == 0x78 ) lastpassend = ftell(f);
+			if( ch == 0x4f ) {
+				fseek(f, SEEK_SET, lastpassend);
+				break;
 			}
 		}
-		for( i  = 0; i < 80; i++ ) {
+		for( i  = 0; i < 79; i++ ) {
 			if( fgetc(f) == EOF ) {
 				fclose(f);
 				return;
