@@ -59,7 +59,7 @@ namespace Server
 			int port = 0;
 			if( cmatch->status == 0 ) { // New
 				fprintf( stdout, "I found a new match\n");
-			} else if( getMatchInstance( cmatch ) == m_matches.end() ) { // Already started
+			} else if( getMatchInstance( cmatch ) == m_matches.end() ) { // Already started, but not running
 				fprintf( stdout, "I found a match, It is meant to be running on port %d, but I don't know about it\n", cmatch->port );
 			} else { // Running
 				Server::MatchInstance * inst = *getMatchInstance(cmatch);
@@ -210,6 +210,12 @@ namespace Server
 				Server::MatchInstance * inst = new MatchInstance( cmatch, m_table, 0, emailSender );
 				m_matches.push_back( inst );
 				fprintf( stdout, "Started server on port %d.\n", inst->match->port );
+			}
+			std::vector<emailrequest_t> * reqs = this->m_table->getEmailRequests( cmatch->id );
+			for( emailrequest_t &req: *reqs ) {
+				if( req.hours == 0 ) {
+					emailSender->sendUnstartNotification( req.address, cmatch );
+				}
 			}
 			Server::MatchInstance * inst = *getMatchInstance(cmatch);
 			inst->moveInTurns();

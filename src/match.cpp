@@ -214,10 +214,13 @@ namespace Game
 		this->t[3] = match->t[3];
 		this->maxholdups = match->maxholdups;
 		this->siterarity = match->siterarity;
-		delete( match->mods );
-		match->mods = new std::vector<Mod*>();
+		for( auto m: *this->mods ) {
+			delete( m );
+		}
+		delete( this->mods );
+		this->mods = new std::vector<Mod*>();
 		for( auto m : *match->mods ) {
-			match->mods->push_back( new Mod(m) );
+			this->mods->push_back( new Mod(m) );
 		}
 	}
 

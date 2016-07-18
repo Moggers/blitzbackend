@@ -30,19 +30,10 @@ namespace Server
 		session->close();
 		Poco::Net::uninitializeSSL();
 	}
-	void EmailSender::sendNotification( int hours, const char * address, Game::Match * cmatch )
+	
+	void EmailSender::sendEmail( const char * address, const char * subj, const char * body )
 	{
-		std::cout << "Sending email to " << address << "\n";
-		std::ostringstream stream;
-		if( hours == 0 ) {
-			stream << "New turn for match " << cmatch->name;
-		} else if( hours == -1 ) {
-			stream << "Match " << cmatch->name << " is starting.";
-		} else {
-			stream << "The next turn for match " << cmatch->name << " is rolling over in " << hours << " hours, but you have not submitted yet. Please do so!";
-		}
-		stream << " You can connect to it using " << Server::Settings::domain << ":" << cmatch->port;
-		std::string subject = Poco::Net::MailMessage::encodeWord(stream.str(), "UTF-8");
+		std::string subject = Poco::Net::MailMessage::encodeWord(subj, "UTF-8");
 		Poco::Net::MailMessage message;
 		std::ostringstream sendstream;
 		sendstream << Server::Settings::emailuser;
@@ -50,7 +41,7 @@ namespace Server
 		message.addRecipient(Poco::Net::MailRecipient(Poco::Net::MailRecipient::PRIMARY_RECIPIENT, std::string(address)));
 		message.setSubject( subject );
 		message.setContentType( "text/plain; charset=UTF-8");
-		message.setContent( stream.str(), Poco::Net::MailMessage::ENCODING_8BIT );
+		message.setContent( body, Poco::Net::MailMessage::ENCODING_8BIT );
 
 		try {
 			session->sendMessage(message);
@@ -80,5 +71,28 @@ namespace Server
 			std::cout << e.message() << '\n';
 			return;
 		}
+	}
+
+	void EmailSender::sendUnstartNotification( const char * address, Game::Match * match)
+	{
+		std::cout << "Sending email to " << address << "\n";
+		std::ostringstream stream;
+		stream << "Match " << match->name << " is unstarting. You can connect to it at " <<Server::Settings::domain << ":" << match->port;
+		sendEmail( address, stream.str().c_str(), stream.str().c_str() );
+	}
+
+	void EmailSender::sendNotification( int hours, const char * address, Game::Match * cmatch )
+	{
+		std::cout << "Sending email to " << address << "\n";
+		std::ostringstream stream;
+		if( hours == 0 ) {
+			stream << "New turn for match " << cmatch->name;
+		} else if( hours == -1 ) {
+			stream << "Match " << cmatch->name << " is starting.";
+		} else {
+			stream << "The next turn for match " << cmatch->name << " is rolling over in " << hours << " hours, but you have not submitted yet. Please do so!";
+		}
+		stream << " You can connect to it using " << Server::Settings::domain << ":" << cmatch->port;
+		sendEmail( address, stream.str().c_str(), stream.str().c_str() );
 	}
 }

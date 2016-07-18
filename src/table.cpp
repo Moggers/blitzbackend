@@ -291,12 +291,15 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "delete from matchnations where match_id=%lu AND nation_id=%d", match->id, nation->id );
+		sprintf( query, "delete from matchnations where match_id=%lu AND nation_id in (select id from nations where dom_id=(select dom_id from nations where id=%d))", match->id, nation->id );
+		fprintf(stdout, "%s\n", query );
 		int sqlerrno;
 		if( ( sqlerrno = mysql_query(m_con, query )) != 0 )
-			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n", sqlerrno );
-		sprintf( query, "rm \"%s/%s%lu/%s.2h\"", Server::Settings::pretenderdir, match->name, match->id, nation->turnname );
-		system( query );
+			fprintf( stdout, "Failed to delete nation from match in database (this is tried whenever a nation is added and is probably okay%d\n%s\n", sqlerrno, query );
+		else {
+			sprintf( query, "rm \"%s/%s%lu/%s.2h\"", Server::Settings::pretenderdir, match->name, match->id, nation->turnname );
+			system( query );
+		}
 		free( query );
 	}
 
@@ -539,8 +542,8 @@ namespace SQL
 	{
 		std::lock_guard<std::recursive_mutex> scopelock(tablelock);
 		char * query = (char*)calloc( 2048, sizeof( char ) );
-		sprintf( query, "select id from matchnations where nation_id=(select id from nations where dom_id=%d AND mod_id in (select mod_id from matchmods where match_id=%lu) order by mod_id desc limit 1) AND match_id=%lu", 
-			pl, match->id, match->id );
+		sprintf( query, "select id from matchnations where match_id=%lu and nation_id in (select id from nations where dom_id=%d);", 
+			match->id, pl );
 		int matchnation_id;
 		int turn_id;
 		int sqlerrno;

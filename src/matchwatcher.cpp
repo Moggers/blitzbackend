@@ -87,6 +87,7 @@ namespace Server
 			}
 			this->currentturn = tn;
 		});
+		// Check for received turn submission
 		batcher.addCheck(R"(.*tcp_get2hfile: gname:.* pl:([0-9]+).*)", [this](const std::smatch &match){
 			fprintf( stdout, "Received turn on match %s for player %d\n", this->match->name, atoi(match[1].str().c_str()) );
 			this->table->markTurnSubmitted( this->match, atoi(match[1].str().c_str()) );

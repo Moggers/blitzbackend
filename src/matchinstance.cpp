@@ -135,6 +135,14 @@ namespace Server
 		stream << "cp \"" << Server::Settings::mappath_load << this->match->mapid << "/" << this->match->imgName
 		<< "\" \"" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/maps/\"";
 		system( stream.str().c_str() );
+		// rsync mods
+		for( auto mod : *(this->match->mods) ) {
+			stream.str("");
+			stream << "rsync -tr " <<  
+				"/" << Server::Settings::modpath_load << "/" << mod->m_id << "/ " <<
+				"/" << Server::Settings::savepath << "/" << this->match->name << this->match->id << "/mods/";
+			system( stream.str().c_str() );
+		}
 
 		char * com = (char*)calloc( 512, sizeof( char ) );
 		match->port = try_get_port( match->port );

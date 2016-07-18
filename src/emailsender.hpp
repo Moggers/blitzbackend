@@ -20,6 +20,8 @@ namespace Server
 		EmailSender(EmailSender& src );
 		~EmailSender(void);
 		void sendNotification( int hours, const char * address, Game::Match * cmatch );
+		void sendEmail( const char * address, const char * subj, const char * body );
+		void sendUnstartNotification( const char * address, Game::Match * match);
 		
 		private:
 		Poco::Net::SecureSMTPClientSession * session;
