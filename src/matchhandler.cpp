@@ -98,6 +98,7 @@ namespace Server
 						sprintf( str, "%s/%s%lu/%s.2h", Settings::savepath, cmatch->name, cmatch->id, nations[ii]->turnname );
 						remove( str );
 						m_table->removeNationFromMatch( cmatch, nations[ii] );
+						delete( nations[ii] );
 						free( str );
 					}
 					fprintf( stdout, "Shutting down for player remove\n" );
